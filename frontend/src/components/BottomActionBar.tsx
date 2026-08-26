@@ -1,0 +1,104 @@
+import React from 'react';
+import { Sparkles, Download, Share2, RefreshCw, Camera } from 'lucide-react';
+import { soundEffects } from '../utils/soundEffects';
+
+interface BottomActionBarProps {
+  hasImage: boolean;
+  isLoading: boolean;
+  hasVideo: boolean;
+  onCameraClick: () => void;
+  onSubmit: () => void;
+  onDownload: () => void;
+  onShare: () => void;
+  onReset: () => void;
+}
+
+export const BottomActionBar: React.FC<BottomActionBarProps> = ({
+  hasImage,
+  isLoading,
+  hasVideo,
+  onCameraClick,
+  onSubmit,
+  onDownload,
+  onShare,
+  onReset,
+}) => {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xl border-t border-slate-800/80 flex items-center justify-center shadow-2xl">
+      <div className="max-w-md w-full flex items-center gap-2">
+        {!hasVideo ? (
+          <>
+            {!hasImage && (
+              <button
+                type="button"
+                onClick={() => {
+                  soundEffects.playClickSound();
+                  onCameraClick();
+                }}
+                className="py-3.5 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 border border-slate-700 active:scale-95 transition-all shadow-md"
+              >
+                <Camera className="w-4 h-4 text-poke-yellow" />
+                <span className="hidden sm:inline">Fotoğraf</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              disabled={!hasImage || isLoading}
+              onClick={() => {
+                soundEffects.playClickSound();
+                onSubmit();
+              }}
+              className={`flex-1 py-3.5 px-5 rounded-2xl font-black text-sm tracking-wider uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                !hasImage || isLoading
+                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                  : 'bg-gradient-to-r from-poke-red via-red-600 to-amber-500 hover:brightness-110 text-white shadow-red-900/50 active:scale-[0.98] ring-1 ring-white/20 animate-glow-pulse'
+              }`}
+            >
+              <Sparkles className="w-5 h-5 text-poke-yellow animate-spin" />
+              <span>{isLoading ? 'OLUŞTURULUYOR...' : 'VİDEOYU OLUŞTUR'}</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                soundEffects.playClickSound();
+                onReset();
+              }}
+              className="py-3.5 px-3.5 rounded-2xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 active:scale-95 transition-all shadow-md"
+              title="Yeni Video"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                soundEffects.playClickSound();
+                onDownload();
+              }}
+              className="flex-1 py-3.5 px-4 rounded-2xl bg-poke-yellow hover:bg-yellow-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+            >
+              <Download className="w-4 h-4" />
+              <span>İndir (MP4)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                soundEffects.playClickSound();
+                onShare();
+              }}
+              className="py-3.5 px-5 rounded-2xl bg-poke-blue hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Paylaş</span>
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};

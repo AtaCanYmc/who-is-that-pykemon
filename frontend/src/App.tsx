@@ -1,27 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
+  Smartphone,
+  Crop,
+  Volume2,
+  VolumeX,
   Sparkles,
-  Download,
-  Share2,
-  RefreshCw,
   Camera,
   AlertCircle,
-  Smartphone,
-  Crop
+  HelpCircle,
 } from 'lucide-react';
 import { ImageCropper } from './components/ImageCropper';
 import { ProgressStepper } from './components/ProgressStepper';
 import { ThemeSelector } from './components/ThemeSelector';
+import { LiveBadgePreview, FontStyleId } from './components/LiveBadgePreview';
+import { BottomActionBar } from './components/BottomActionBar';
+import { soundEffects } from './utils/soundEffects';
 
 /**
  * Main Application Component: Who is That Pykemon?
  *
- * Full-featured Progressive Web App with:
- * - Image selection & camera capture
+ * Full-featured Neo-Retro Pokémon Experience:
+ * - Glassmorphism & Neo-Retro aesthetic (Game Boy / Anime / Cyberpunk)
+ * - Live dynamic reveal text & badge preview with font styles
  * - Interactive centering & zoom cropping tool
- * - Multi-theme customization (Kanto Classic, Johto Gold, Cyber Neon)
- * - Asynchronous task polling with step-by-step progress
- * - 16:9 video preview, download, and Web Share API
+ * - Web Audio API procedural retro sound effects & mobile haptics
+ * - Asynchronous task polling with animated Pokéball progress
+ * - Mobile-first Thumb Zone action bar
+ * - PWA native install prompt & standalone mode
  */
 export default function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -30,6 +35,8 @@ export default function App() {
   const [showCropper, setShowCropper] = useState<boolean>(false);
   const [selectedTheme, setSelectedTheme] = useState<string>('classic');
   const [personName, setPersonName] = useState<string>('');
+  const [fontStyle, setFontStyle] = useState<FontStyleId>('display');
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // Async job state
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -66,9 +73,22 @@ export default function App() {
   }, []);
 
   /**
+   * Toggle Sound Effects.
+   */
+  const handleToggleMute = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    soundEffects.isMuted = nextMuted;
+    if (!nextMuted) {
+      soundEffects.playClickSound();
+    }
+  };
+
+  /**
    * Triggers native browser PWA installation.
    */
   const handleInstallClick = async () => {
+    soundEffects.playClickSound();
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -90,6 +110,7 @@ export default function App() {
       setPreviewUrl(url);
       setVideoBlobUrl(null);
       setError(null);
+      soundEffects.playClickSound();
     }
   };
 
@@ -107,6 +128,7 @@ export default function App() {
         setPreviewUrl(url);
         setVideoBlobUrl(null);
         setError(null);
+        soundEffects.playClickSound();
       } else {
         setError('Lütfen geçerli bir görsel dosyası seçin (PNG, JPG, WEBP).');
       }
@@ -121,14 +143,14 @@ export default function App() {
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(croppedBlob));
     setShowCropper(false);
+    soundEffects.playClickSound();
   };
 
   /**
    * Submits job to asynchronous processing queue and polls progress.
    */
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFile) return;
+  const handleGenerate = async () => {
+    if (!selectedFile || isLoading) return;
 
     setIsLoading(true);
     setError(null);
@@ -160,7 +182,7 @@ export default function App() {
       // 2. Poll job status
       let isDone = false;
       while (!isDone) {
-        await new Promise((r) => setTimeout(r, 800));
+        await new Promise((r) => setTimeout(r, 700));
 
         const pollRes = await fetch(`${API_URL}/api/jobs/${job_id}`);
         if (!pollRes.ok) {
@@ -223,6 +245,19 @@ export default function App() {
     }
   };
 
+  /**
+   * Downloads video directly.
+   */
+  const handleDownload = () => {
+    if (!videoBlobUrl) return;
+    const a = document.createElement('a');
+    a.href = videoBlobUrl;
+    a.download = `whos_that_${(personName || 'pykemon').toLowerCase().replace(/\s+/g, '_')}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const resetAll = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
@@ -235,7 +270,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-between p-4 sm:p-6 text-slate-100 font-sans">
+    <div className="min-h-screen bg-slate-950 retro-grid-bg flex flex-col items-center justify-between p-4 sm:p-6 pb-28 text-slate-100 font-sans selection:bg-poke-yellow selection:text-slate-950">
       {/* Interactive Crop Modal */}
       {showCropper && rawImageUrl && (
         <ImageCropper
@@ -245,40 +280,63 @@ export default function App() {
         />
       )}
 
+      {/* Top Navigation & Sound Toggle */}
+      <nav className="w-full max-w-lg flex items-center justify-between py-2 mb-2">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-ping"></span>
+          <span className="text-[11px] font-arcade text-slate-400 tracking-wider">ONLINE</span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleToggleMute}
+          className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all shadow"
+          title={isMuted ? 'Sesi Aç' : 'Sesi Kapat'}
+        >
+          {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-poke-yellow" />}
+        </button>
+      </nav>
+
       {/* Header & Logo */}
-      <header className="w-full max-w-md flex flex-col items-center pt-2 pb-4">
+      <header className="w-full max-w-lg flex flex-col items-center pt-1 pb-4">
         {/* PWA Install Banner */}
         {deferredPrompt && !isInstalled && (
           <button
             onClick={handleInstallClick}
-            className="w-full mb-4 py-2 px-3 bg-gradient-to-r from-poke-blue to-blue-600 rounded-xl text-xs font-semibold flex items-center justify-between shadow-lg active:scale-95 transition-all"
+            className="w-full mb-4 py-2.5 px-3.5 bg-gradient-to-r from-poke-blue to-blue-600 rounded-2xl text-xs font-bold flex items-center justify-between shadow-lg active:scale-95 transition-all border border-white/10"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <Smartphone className="w-4 h-4 text-poke-yellow animate-bounce" />
-              <span>Ana Ekrana Ekle (PWA)</span>
+              <span>Ana Ekrana Ekle (PWA Uygulama)</span>
             </div>
-            <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold">YÜKLE</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-lg text-[10px] font-black">YÜKLE</span>
           </button>
         )}
 
+        {/* Neo-Retro Logo */}
         <div className="flex items-center gap-3">
-          <div className="relative w-10 h-10 rounded-full bg-poke-red border-2 border-white flex items-center justify-center shadow-lg shadow-red-900/50">
+          <div className="relative w-11 h-11 rounded-full bg-poke-red border-2 border-white flex items-center justify-center shadow-xl shadow-red-900/60 animate-pokeball-wobble">
             <div className="w-full h-1 bg-slate-950 absolute"></div>
-            <div className="w-3.5 h-3.5 rounded-full bg-white border-2 border-slate-950 z-10"></div>
+            <div className="w-4 h-4 rounded-full bg-white border-2 border-slate-950 z-10 flex items-center justify-center">
+              <div className="w-1 h-1 rounded-full bg-poke-yellow"></div>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-wider text-poke-yellow drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] uppercase">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-wider text-poke-yellow text-poke-stroke font-display uppercase">
             Who is That <span className="text-white">Pykemon</span>?
           </h1>
         </div>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1 text-center font-medium">
+        <p className="text-xs sm:text-sm text-slate-400 mt-1.5 text-center font-medium">
           Fotoğrafını yükle, anında klasik Pokémon geçiş meme videosunu üret!
         </p>
       </header>
 
-      {/* Main Content Card */}
-      <main className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-xl flex flex-col my-auto">
+      {/* Main Glassmorphic Card */}
+      <main className="w-full max-w-lg glass-card-interactive rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col my-auto relative overflow-hidden">
+        {/* Glowing Top Neon Line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-poke-red via-poke-yellow to-poke-blue"></div>
+
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/40 rounded-2xl flex items-start gap-2.5 text-red-200 text-xs sm:text-sm">
+          <div className="mb-4 p-3.5 bg-red-500/15 border border-red-500/40 rounded-2xl flex items-start gap-2.5 text-red-200 text-xs sm:text-sm shadow-inner">
             <AlertCircle className="w-4 h-4 mt-0.5 text-red-400 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -293,33 +351,36 @@ export default function App() {
           />
         ) : !videoBlobUrl ? (
           /* Form Input View */
-          <form onSubmit={handleGenerate} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             {/* Fotoğraf Yükleme / Dropzone */}
             <div className="relative w-full">
               <div
-                onClick={() => !previewUrl && fileInputRef.current?.click()}
+                onClick={() => {
+                  soundEffects.playClickSound();
+                  !previewUrl && fileInputRef.current?.click();
+                }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                className={`relative aspect-square w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-200 group ${
+                className={`relative aspect-square w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-300 group ${
                   previewUrl
-                    ? 'border-poke-yellow/60 bg-slate-950/80'
-                    : 'border-slate-700 hover:border-poke-yellow bg-slate-800/40 hover:bg-slate-800/70'
+                    ? 'border-poke-yellow/70 bg-slate-950/90 shadow-2xl'
+                    : 'border-slate-700 hover:border-poke-yellow bg-slate-900/50 hover:bg-slate-850'
                 }`}
               >
                 {previewUrl ? (
                   <>
                     <img src={previewUrl} alt="Preview" className="w-full h-full object-contain p-2" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-medium text-xs backdrop-blur-[2px]">
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-bold text-xs backdrop-blur-[3px]">
                       <Camera className="w-4 h-4 text-poke-yellow" />
                       Fotoğrafı Değiştir
                     </div>
                   </>
                 ) : (
                   <div className="flex flex-col items-center p-6 text-center">
-                    <div className="p-4 rounded-2xl bg-poke-red/10 border border-poke-red/20 group-hover:bg-poke-yellow/20 group-hover:border-poke-yellow/40 text-poke-yellow transition-all mb-3 shadow-inner">
-                      <Camera className="w-8 h-8 text-poke-yellow" />
+                    <div className="p-4 rounded-3xl bg-poke-red/10 border border-poke-red/30 group-hover:bg-poke-yellow/20 group-hover:border-poke-yellow/50 text-poke-yellow transition-all mb-3 shadow-inner">
+                      <Camera className="w-9 h-9 text-poke-yellow" />
                     </div>
-                    <span className="font-semibold text-sm text-slate-200">Fotoğraf Seç veya Kamerayı Aç</span>
+                    <span className="font-bold text-sm text-slate-100">Fotoğraf Seç veya Kamerayı Aç</span>
                     <span className="text-xs text-slate-500 mt-1">PNG, JPG, WEBP • Max 15 MB</span>
                   </div>
                 )}
@@ -336,8 +397,11 @@ export default function App() {
               {previewUrl && (
                 <button
                   type="button"
-                  onClick={() => setShowCropper(true)}
-                  className="absolute top-3 right-3 py-1.5 px-3 bg-slate-900/90 hover:bg-poke-yellow hover:text-slate-950 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-1.5 shadow-lg backdrop-blur-md transition-all active:scale-95"
+                  onClick={() => {
+                    soundEffects.playClickSound();
+                    setShowCropper(true);
+                  }}
+                  className="absolute top-3 right-3 py-2 px-3 bg-slate-950/90 hover:bg-poke-yellow hover:text-slate-950 text-slate-100 text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-1.5 shadow-xl backdrop-blur-md transition-all active:scale-95"
                 >
                   <Crop className="w-3.5 h-3.5" />
                   <span>Kırp / Odakla</span>
@@ -347,8 +411,9 @@ export default function App() {
 
             {/* İsim Girişi */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="name" className="text-xs font-bold text-slate-300 tracking-wide uppercase">
-                Açılışta Söylenecek İsim (Opsiyonel)
+              <label htmlFor="name" className="text-[11px] font-bold text-slate-300 tracking-wider uppercase flex items-center justify-between">
+                <span>Açılışta Söylenecek İsim</span>
+                <span className="text-[10px] text-slate-500 lowercase">opsiyonel</span>
               </label>
               <input
                 id="name"
@@ -356,35 +421,37 @@ export default function App() {
                 maxLength={30}
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
-                placeholder="Örn: Caner, Hoca, Pikachu..."
-                className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-poke-yellow text-sm font-medium text-white placeholder-slate-500 transition-all"
+                placeholder="Örn: Ahmet, Caner, Pikachu..."
+                className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-poke-yellow text-sm font-semibold text-white placeholder-slate-500 transition-all shadow-inner"
               />
             </div>
+
+            {/* Canlı Metin & Rozet Önizleme */}
+            <LiveBadgePreview
+              personName={personName}
+              selectedTheme={selectedTheme}
+              fontStyle={fontStyle}
+              onSelectFontStyle={setFontStyle}
+            />
 
             {/* Tema Seçici */}
             <ThemeSelector
               selectedTheme={selectedTheme}
               onSelectTheme={setSelectedTheme}
             />
-
-            {/* Üret Butonu */}
-            <button
-              type="submit"
-              disabled={!selectedFile}
-              className={`w-full py-4 rounded-2xl font-black text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg transition-all ${
-                !selectedFile
-                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                  : 'bg-gradient-to-r from-poke-red via-red-600 to-amber-500 hover:brightness-110 text-white shadow-red-900/40 active:scale-[0.98]'
-              }`}
-            >
-              <Sparkles className="w-5 h-5 text-poke-yellow" />
-              <span>Videoyu Oluştur</span>
-            </button>
-          </form>
+          </div>
         ) : (
           /* Video Sonuç Ekranı */
           <div className="flex flex-col items-center gap-4">
-            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800 flex items-center justify-center">
+            <div className="w-full flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-poke-yellow" />
+                <span className="text-xs font-arcade text-poke-yellow">VİDEO TAMAMLANDI!</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400">1080P • 16:9</span>
+            </div>
+
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-700/80 flex items-center justify-center">
               <video
                 src={videoBlobUrl}
                 controls
@@ -394,40 +461,25 @@ export default function App() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 w-full">
-              <a
-                href={videoBlobUrl}
-                download={`whos_that_${(personName || 'pykemon').toLowerCase().replace(/\s+/g, '_')}.mp4`}
-                className="py-3.5 px-4 bg-poke-yellow hover:bg-yellow-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
-              >
-                <Download className="w-4 h-4" />
-                <span>İndir</span>
-              </a>
-
-              <button
-                onClick={handleShare}
-                className="py-3.5 px-4 bg-poke-blue hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>Paylaş</span>
-              </button>
+            <div className="p-3 w-full rounded-xl bg-slate-950/60 border border-slate-800 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+              <HelpCircle className="w-4 h-4 text-poke-yellow" />
+              <span>Videoyu doğrudan indirebilir veya Instagram/TikTok&apos;ta paylaşabilirsiniz!</span>
             </div>
-
-            <button
-              onClick={resetAll}
-              className="w-full py-3 bg-slate-800/80 hover:bg-slate-800 text-slate-300 font-bold rounded-xl flex items-center justify-center gap-2 text-xs transition-all border border-slate-700 active:scale-98"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Yeni Video Hazırla</span>
-            </button>
           </div>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="w-full max-w-md text-center py-3 text-[11px] text-slate-500 font-medium">
-        Who is That Pykemon • Asynchronous AI Task Queue Powered PWA
-      </footer>
+      {/* Mobile-first Thumb Zone Action Bar */}
+      <BottomActionBar
+        hasImage={Boolean(selectedFile)}
+        isLoading={isLoading}
+        hasVideo={Boolean(videoBlobUrl)}
+        onCameraClick={() => fileInputRef.current?.click()}
+        onSubmit={handleGenerate}
+        onDownload={handleDownload}
+        onShare={handleShare}
+        onReset={resetAll}
+      />
     </div>
   );
 }

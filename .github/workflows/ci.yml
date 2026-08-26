@@ -32,9 +32,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run Backend Pytest Suite
+      - name: Run Backend Pytest Suite with Coverage
         run: |
-          pytest backend/tests/ -v
+          pytest backend/tests/ -v --cov=backend/app --cov-report=term-missing
 
   frontend-tests:
     name: Frontend Tests (React & PWA Build)

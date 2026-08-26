@@ -10,8 +10,8 @@ FONTS_DIR = ASSETS_DIR / "fonts"
 VIDEO_WIDTH = 1920
 VIDEO_HEIGHT = 1080
 VIDEO_FPS = 24
-SILHOUETTE_DURATION = 3.5
-TOTAL_DURATION = 7.0
+SILHOUETTE_DURATION = 3.3
+TOTAL_DURATION = 6.77
 
 # Temporary file directory
 TEMP_DIR = Path(os.environ.get("TEMP_DIR", "/tmp/who_is_that_pykemon"))

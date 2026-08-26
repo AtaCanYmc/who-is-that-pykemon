@@ -1,10 +1,12 @@
 import io
-from typing import Tuple
-from PIL import Image
-from fastapi import HTTPException, UploadFile
-from app.config import MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES
 
-def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> Tuple[Image.Image, str]:
+from fastapi import HTTPException, UploadFile
+from PIL import Image
+
+from app.config import ALLOWED_MIME_TYPES, MAX_UPLOAD_SIZE_BYTES
+
+
+def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> tuple[Image.Image, str]:
     """
     Validates uploaded image file against size limits, allowed MIME types,
     and checks file integrity using Pillow.
@@ -27,7 +29,7 @@ def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> Tuple[Image
         max_mb = MAX_UPLOAD_SIZE_BYTES // (1024 * 1024)
         raise HTTPException(
             status_code=413,
-            detail=f"File size exceeds maximum allowed limit of {max_mb} MB."
+            detail=f"File size exceeds maximum allowed limit of {max_mb} MB.",
         )
 
     # 2. Check MIME type
@@ -35,7 +37,7 @@ def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> Tuple[Image
     if content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file format '{content_type}'. Allowed formats: PNG, JPEG, WEBP."
+            detail=f"Unsupported file format '{content_type}'. Allowed formats: PNG, JPEG, WEBP.",
         )
 
     # 3. Verify image integrity with Pillow
@@ -43,7 +45,7 @@ def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> Tuple[Image
         buf = io.BytesIO(image_bytes)
         img = Image.open(buf)
         img.verify()
-        
+
         # Re-open image since verify() invalidates the file pointer
         buf.seek(0)
         img = Image.open(buf)
@@ -51,6 +53,5 @@ def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> Tuple[Image
         return img, detected_format
     except Exception as e:
         raise HTTPException(
-            status_code=400,
-            detail=f"Corrupted or unreadable image file: {str(e)}"
-        )
+            status_code=400, detail=f"Corrupted or unreadable image file: {e!s}"
+        ) from e

@@ -1,11 +1,16 @@
 import sys
 from pathlib import Path
+
 import numpy as np
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.services.image_processor import process_and_remove_background, generate_black_silhouette
+from app.services.image_processor import (
+    generate_black_silhouette,
+    process_and_remove_background,
+)
+
 
 def test_process_and_remove_background(sample_image_bytes):
     """
@@ -15,6 +20,7 @@ def test_process_and_remove_background(sample_image_bytes):
     assert isinstance(result, Image.Image)
     assert result.mode == "RGBA"
     assert result.size == (300, 300)
+
 
 def test_generate_black_silhouette(sample_transparent_image):
     """

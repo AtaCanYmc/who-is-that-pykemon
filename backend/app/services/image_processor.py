@@ -1,10 +1,12 @@
 import io
+
 import numpy as np
 from PIL import Image, ImageOps
-from rembg import remove, new_session
+from rembg import new_session, remove
 
 # Global cache for the rembg u2net session
 _session = None
+
 
 def get_session():
     """
@@ -18,10 +20,9 @@ def get_session():
         _session = new_session("u2net")
     return _session
 
+
 def enhance_and_solidify_alpha(
-    img: Image.Image,
-    bg_threshold: int = 30,
-    fg_threshold: int = 150
+    img: Image.Image, bg_threshold: int = 30, fg_threshold: int = 150
 ) -> Image.Image:
     """
     Cleans up background artifacts and solidifies semi-transparent foreground pixels:
@@ -47,7 +48,11 @@ def enhance_and_solidify_alpha(
     clean_alpha = np.where(alpha_np < bg_threshold, 0.0, alpha_np)
 
     # 2. Smoothly stretch foreground alpha to solid 255
-    ramp = np.clip((clean_alpha - bg_threshold) / max(1.0, float(fg_threshold - bg_threshold)), 0.0, 1.0)
+    ramp = np.clip(
+        (clean_alpha - bg_threshold) / max(1.0, float(fg_threshold - bg_threshold)),
+        0.0,
+        1.0,
+    )
     # Smooth Hermite / S-curve interpolation: 3*x^2 - 2*x^3
     solid_alpha = np.where(clean_alpha > 0, ramp * ramp * (3.0 - 2.0 * ramp) * 255.0, 0.0)
     solid_alpha = np.clip(solid_alpha, 0, 255).astype(np.uint8)
@@ -55,6 +60,7 @@ def enhance_and_solidify_alpha(
     clean_alpha_pil = Image.fromarray(solid_alpha, mode="L")
     cleaned_img = Image.merge("RGBA", (r, g, b, clean_alpha_pil))
     return cleaned_img
+
 
 def process_and_remove_background(image_bytes: bytes) -> Image.Image:
     """
@@ -71,18 +77,15 @@ def process_and_remove_background(image_bytes: bytes) -> Image.Image:
     img = Image.open(io.BytesIO(image_bytes))
     img = ImageOps.exif_transpose(img)
     img = img.convert("RGBA")
-    
+
     # 1. Execute AI background removal with morphological post-processing
     session = get_session()
-    raw_result = remove(
-        img,
-        session=session,
-        post_process_mask=True
-    )
+    raw_result = remove(img, session=session, post_process_mask=True)
 
     # 2. Enhance alpha clarity and solidify subject pixels
     clean_result = enhance_and_solidify_alpha(raw_result, bg_threshold=30, fg_threshold=150)
     return clean_result
+
 
 def generate_black_silhouette(transparent_image: Image.Image) -> Image.Image:
     """
@@ -97,9 +100,9 @@ def generate_black_silhouette(transparent_image: Image.Image) -> Image.Image:
     """
     if transparent_image.mode != "RGBA":
         transparent_image = transparent_image.convert("RGBA")
-    
+
     # Extract alpha channel
-    r, g, b, alpha = transparent_image.split()
+    _r, _g, _b, alpha = transparent_image.split()
     alpha_np = np.array(alpha, dtype=np.float32)
 
     # Solidify silhouette mask so it's a bold, non-transparent Pokémon teaser

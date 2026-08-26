@@ -1,6 +1,8 @@
 import io
+
 import pytest
 from PIL import Image, ImageDraw
+
 
 @pytest.fixture
 def sample_image_bytes() -> bytes:
@@ -16,6 +18,7 @@ def sample_image_bytes() -> bytes:
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
+
 
 @pytest.fixture
 def sample_transparent_image() -> Image.Image:

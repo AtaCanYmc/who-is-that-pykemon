@@ -1,12 +1,14 @@
-import sys
 import asyncio
+import sys
 from pathlib import Path
+
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.main import app
+
 
 @pytest.mark.asyncio
 async def test_health_endpoint():
@@ -16,6 +18,7 @@ async def test_health_endpoint():
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
+
 
 @pytest.mark.asyncio
 async def test_get_themes_endpoint():
@@ -30,6 +33,7 @@ async def test_get_themes_endpoint():
         assert "gold" in theme_ids
         assert "neon" in theme_ids
 
+
 @pytest.mark.asyncio
 async def test_async_jobs_workflow(sample_image_bytes):
     transport = ASGITransport(app=app)
@@ -38,7 +42,7 @@ async def test_async_jobs_workflow(sample_image_bytes):
         create_res = await ac.post(
             "/api/jobs",
             files={"file": ("pikachu.png", sample_image_bytes, "image/png")},
-            data={"name": "Ash", "theme": "classic"}
+            data={"name": "Ash", "theme": "classic"},
         )
         assert create_res.status_code == 202
         job_id = create_res.json()["job_id"]

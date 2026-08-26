@@ -76,7 +76,7 @@ flowchart TD
 
     subgraph Backend["⚙️ Backend (FastAPI Engine)"]
         C --> D["🔄 EXIF Auto-Transpose & Read Bytes"]
-        
+
         subgraph AIPipeline["🤖 AI Background Removal & Masking"]
             D --> E["✂️ rembg (u2net ONNX Session)"]
             E --> F["✨ Alpha Solidification (Hermite S-Curve)"]

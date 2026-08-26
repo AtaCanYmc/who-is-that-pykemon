@@ -1,11 +1,13 @@
-import sys
 import asyncio
+import sys
 from pathlib import Path
+
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.services.job_manager import JobManager, JobStatus
+
 
 @pytest.mark.asyncio
 async def test_job_manager_lifecycle(sample_image_bytes):

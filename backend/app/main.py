@@ -1,20 +1,30 @@
-import os
-import uuid
 import logging
+import uuid
 from pathlib import Path
-from typing import Dict, Any, List, Optional
-from pydantic import BaseModel, Field
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
 
-from app.config import TEMP_DIR, ASSETS_DIR, THEMES
-from app.utils.assets_init import ensure_assets
-from app.utils.validator import validate_uploaded_image
-from app.utils.cleanup import start_cleanup_worker, stop_cleanup_worker
-from app.services.image_processor import process_and_remove_background, generate_black_silhouette
+from fastapi import (
+    BackgroundTasks,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+
+from app.config import ASSETS_DIR, TEMP_DIR, THEMES
+from app.services.image_processor import (
+    generate_black_silhouette,
+    process_and_remove_background,
+)
+from app.services.job_manager import JobStatus, job_manager
 from app.services.video_generator import generate_reveal_video
-from app.services.job_manager import job_manager, JobStatus
+from app.utils.assets_init import ensure_assets
+from app.utils.cleanup import start_cleanup_worker, stop_cleanup_worker
+from app.utils.validator import validate_uploaded_image
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("who-is-that-pykemon")
@@ -22,7 +32,7 @@ logger = logging.getLogger("who-is-that-pykemon")
 app = FastAPI(
     title="Who is That Pykemon API",
     description="Asynchronous Task Queue & REST API for Pokémon Reveal Meme Video Generation",
-    version="1.1.0"
+    version="1.1.0",
 )
 
 # Configure Cross-Origin Resource Sharing (CORS) for PWA frontend access
@@ -34,6 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # ==========================================
 # Pydantic Response & Request Models
 # ==========================================
@@ -42,18 +53,21 @@ class ThemeItem(BaseModel):
     name: str
     description: str
 
+
 class JobCreatedResponse(BaseModel):
     job_id: str
     status: str
     message: str
+
 
 class JobStatusResponse(BaseModel):
     job_id: str
     status: str
     progress: int
     message: str
-    download_url: Optional[str] = None
-    error: Optional[str] = None
+    download_url: str | None = None
+    error: str | None = None
+
 
 # ==========================================
 # Lifecycle Hooks
@@ -65,11 +79,13 @@ async def startup_event() -> None:
     start_cleanup_worker()
     logger.info("Application started: Assets verified and cleanup worker running.")
 
+
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     """Stops the background cleanup worker cleanly on application exit."""
     stop_cleanup_worker()
     logger.info("Application shutdown: Cleanup worker stopped.")
+
 
 def remove_temp_file(file_path: str) -> None:
     """Deletes temporary video file after download."""
@@ -81,6 +97,7 @@ def remove_temp_file(file_path: str) -> None:
     except Exception as e:
         logger.warning(f"Failed to delete temp file {file_path}: {e}")
 
+
 # ==========================================
 # API Endpoints
 # ==========================================
@@ -89,13 +106,14 @@ def health() -> dict:
     """Health check endpoint."""
     return {"status": "ok", "app": "Who is That Pykemon", "version": "1.1.0"}
 
-@app.get("/api/themes", response_model=List[ThemeItem])
-def get_themes() -> List[ThemeItem]:
+
+@app.get("/api/themes", response_model=list[ThemeItem])
+def get_themes() -> list[ThemeItem]:
     """Returns available theme styles."""
     return [
-        ThemeItem(id=k, name=v["name"], description=v["description"])
-        for k, v in THEMES.items()
+        ThemeItem(id=k, name=v["name"], description=v["description"]) for k, v in THEMES.items()
     ]
+
 
 # ------------------------------------------
 # Asynchronous Job Queue Endpoints
@@ -104,7 +122,7 @@ def get_themes() -> List[ThemeItem]:
 async def create_video_job(
     file: UploadFile = File(..., description="Portrait image file"),
     name: str = Form("Someone", description="Subject name to announce"),
-    theme: str = Form("classic", description="Theme identifier")
+    theme: str = Form("classic", description="Theme identifier"),
 ) -> JobCreatedResponse:
     """
     Submits a video creation job to the asynchronous processing queue.
@@ -114,17 +132,10 @@ async def create_video_job(
     validate_uploaded_image(file, image_bytes)
 
     valid_theme = theme if theme in THEMES else "classic"
-    job = await job_manager.create_job(
-        image_bytes=image_bytes,
-        person_name=name,
-        theme=valid_theme
-    )
+    job = await job_manager.create_job(image_bytes=image_bytes, person_name=name, theme=valid_theme)
 
-    return JobCreatedResponse(
-        job_id=job.job_id,
-        status=job.status.value,
-        message=job.message
-    )
+    return JobCreatedResponse(job_id=job.job_id, status=job.status.value, message=job.message)
+
 
 @app.get("/api/jobs/{job_id}", response_model=JobStatusResponse)
 async def get_job_status(job_id: str) -> JobStatusResponse:
@@ -143,14 +154,12 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
         progress=job.progress,
         message=job.message,
         download_url=download_url,
-        error=job.error
+        error=job.error,
     )
 
+
 @app.get("/api/jobs/{job_id}/download")
-async def download_job_video(
-    job_id: str,
-    background_tasks: BackgroundTasks
-) -> FileResponse:
+async def download_job_video(job_id: str, background_tasks: BackgroundTasks) -> FileResponse:
     """
     Downloads the completed video file for a specific job.
     """
@@ -168,9 +177,10 @@ async def download_job_video(
         filename=safe_filename,
         headers={
             "Access-Control-Expose-Headers": "Content-Disposition",
-            "Content-Disposition": f'attachment; filename="{safe_filename}"'
-        }
+            "Content-Disposition": f'attachment; filename="{safe_filename}"',
+        },
     )
+
 
 # ------------------------------------------
 # Synchronous Endpoint (Backward Compatible)
@@ -180,7 +190,7 @@ async def generate_video_endpoint(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="Uploaded portrait photo"),
     name: str = Form("Someone", description="Name displayed during reveal"),
-    theme: str = Form("classic", description="Theme identifier")
+    theme: str = Form("classic", description="Theme identifier"),
 ) -> FileResponse:
     """
     Synchronously renders and streams a 'Who is That Pykemon' video.
@@ -203,7 +213,7 @@ async def generate_video_endpoint(
             silhouette_img=silhouette_img,
             person_name=clean_name,
             output_path=output_video_path,
-            theme=valid_theme
+            theme=valid_theme,
         )
 
         background_tasks.add_task(remove_temp_file, str(output_video_path))
@@ -215,9 +225,9 @@ async def generate_video_endpoint(
             filename=safe_filename,
             headers={
                 "Access-Control-Expose-Headers": "Content-Disposition",
-                "Content-Disposition": f'attachment; filename="{safe_filename}"'
-            }
+                "Content-Disposition": f'attachment; filename="{safe_filename}"',
+            },
         )
     except Exception as e:
-        logger.error(f"Error during video generation: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to generate video: {str(e)}")
+        logger.exception(f"Error during video generation: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate video: {e!s}") from e

@@ -1,10 +1,14 @@
 import math
 import wave
 from pathlib import Path
+
 import numpy as np
 from PIL import Image, ImageDraw
 
-def generate_default_pokemon_background(output_path: Path, width: int = 1080, height: int = 1920) -> Path:
+
+def generate_default_pokemon_background(
+    output_path: Path, width: int = 1080, height: int = 1920
+) -> Path:
     """
     Programmatically generates the classic Pokémon ray-burst transition background.
 
@@ -29,29 +33,45 @@ def generate_default_pokemon_background(output_path: Path, width: int = 1080, he
     for i in range(0, num_rays, 2):
         angle1 = i * angle_step
         angle2 = (i + 1) * angle_step
-        
+
         p1 = (center_x, center_y)
-        p2 = (center_x + max_radius * math.cos(angle1), center_y + max_radius * math.sin(angle1))
-        p3 = (center_x + max_radius * math.cos(angle2), center_y + max_radius * math.sin(angle2))
-        
-        draw.polygon([p1, p2, p3], fill=(59, 130, 246, 255)) # Light blue ray
+        p2 = (
+            center_x + max_radius * math.cos(angle1),
+            center_y + max_radius * math.sin(angle1),
+        )
+        p3 = (
+            center_x + max_radius * math.cos(angle2),
+            center_y + max_radius * math.sin(angle2),
+        )
+
+        draw.polygon([p1, p2, p3], fill=(59, 130, 246, 255))  # Light blue ray
 
     # Draw center glowing halo circle
     halo_radius = int(width * 0.45)
     draw.ellipse(
-        [center_x - halo_radius, center_y - halo_radius, center_x + halo_radius, center_y + halo_radius],
-        fill=(255, 203, 5, 120) # Semi-transparent Pokémon yellow
+        [
+            center_x - halo_radius,
+            center_y - halo_radius,
+            center_x + halo_radius,
+            center_y + halo_radius,
+        ],
+        fill=(255, 203, 5, 120),  # Semi-transparent Pokémon yellow
     )
-    
+
     # Decorative bottom banner and divider
-    draw.rectangle([0, int(height * 0.78), width, height], fill=(238, 21, 21, 240)) # Red bar
-    draw.rectangle([0, int(height * 0.78), width, int(height * 0.785)], fill=(255, 255, 255, 255)) # White divider
+    draw.rectangle([0, int(height * 0.78), width, height], fill=(238, 21, 21, 240))  # Red bar
+    draw.rectangle(
+        [0, int(height * 0.78), width, int(height * 0.785)], fill=(255, 255, 255, 255)
+    )  # White divider
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(output_path, "PNG")
     return output_path
 
-def generate_default_pokemon_sound(output_path: Path, duration: float = 7.0, sample_rate: int = 44100) -> Path:
+
+def generate_default_pokemon_sound(
+    output_path: Path, duration: float = 7.0, sample_rate: int = 44100
+) -> Path:
     """
     Synthesizes an 8-bit chiptune style 'Who's that Pokémon?' teaser and fanfare audio jingle.
 
@@ -72,15 +92,15 @@ def generate_default_pokemon_sound(output_path: Path, duration: float = 7.0, sam
     notes = [
         (0.1, 523.25, 0.25),  # C5
         (0.4, 659.25, 0.25),  # E5
-        (0.7, 783.99, 0.3),   # G5
+        (0.7, 783.99, 0.3),  # G5
         (1.1, 1046.50, 0.6),  # C6 (Sustained)
-        (2.0, 783.99, 0.2),   # G5
+        (2.0, 783.99, 0.2),  # G5
         (2.3, 1046.50, 0.5),  # C6
         # Reveal fanfare (post 3.5s)
-        (3.5, 659.25, 0.2),   # E5
+        (3.5, 659.25, 0.2),  # E5
         (3.75, 783.99, 0.2),  # G5
         (4.0, 1046.50, 0.2),  # C6
-        (4.25, 1318.51, 0.8), # E6 (Climax)
+        (4.25, 1318.51, 0.8),  # E6 (Climax)
         (5.2, 1046.50, 0.6),  # C6
     ]
 
@@ -100,17 +120,18 @@ def generate_default_pokemon_sound(output_path: Path, duration: float = 7.0, sam
     max_val = np.max(np.abs(audio))
     if max_val > 0:
         audio = (audio / max_val) * 0.85
-    
+
     audio_int16 = (audio * 32767).astype(np.int16)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with wave.open(str(output_path), "w") as wav_file:
-        wav_file.setnchannels(1) # Mono
-        wav_file.setsampwidth(2) # 16-bit
+        wav_file.setnchannels(1)  # Mono
+        wav_file.setsampwidth(2)  # 16-bit
         wav_file.setframerate(sample_rate)
         wav_file.writeframes(audio_int16.tobytes())
 
     return output_path
+
 
 def ensure_assets(assets_dir: Path) -> None:
     """

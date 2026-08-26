@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Optional
+
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
@@ -9,27 +9,28 @@ if not hasattr(Image, "ANTIALIAS"):
     Image.ANTIALIAS = Image.Resampling.LANCZOS
 
 try:
-    from moviepy.editor import ImageClip, AudioFileClip, CompositeVideoClip
+    from moviepy.editor import AudioFileClip, CompositeVideoClip, ImageClip
 except ImportError:
-    from moviepy import ImageClip, AudioFileClip, CompositeVideoClip
+    from moviepy import AudioFileClip, CompositeVideoClip, ImageClip
 
 from app.config import (
-    VIDEO_WIDTH,
-    VIDEO_HEIGHT,
-    VIDEO_FPS,
-    SILHOUETTE_DURATION,
-    TOTAL_DURATION,
     ASSETS_DIR,
     FONTS_DIR,
-    THEMES
+    SILHOUETTE_DURATION,
+    THEMES,
+    TOTAL_DURATION,
+    VIDEO_FPS,
+    VIDEO_HEIGHT,
+    VIDEO_WIDTH,
 )
 from app.utils.assets_init import ensure_assets
+
 
 def render_reveal_text_layer(
     person_name: str,
     width: int = VIDEO_WIDTH,
     height: int = VIDEO_HEIGHT,
-    theme: str = "classic"
+    theme: str = "classic",
 ) -> np.ndarray:
     """
     Renders the themed 'IT'S [NAME]!' badge overlay.
@@ -65,7 +66,7 @@ def render_reveal_text_layer(
         system_fonts = [
             "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
             "/Library/Fonts/Arial Bold.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         ]
         for sf in system_fonts:
             if os.path.exists(sf):
@@ -80,7 +81,7 @@ def render_reveal_text_layer(
 
     bbox = draw.textbbox((0, 0), display_text, font=font)
     text_w = bbox[2] - bbox[0]
-    
+
     x = max(30, (width - text_w) // 2)
     y = int(height * 0.08)
 
@@ -91,16 +92,17 @@ def render_reveal_text_layer(
         font=font,
         fill=text_fill,
         stroke_width=stroke_width,
-        stroke_fill=text_stroke
+        stroke_fill=text_stroke,
     )
     return np.array(img)
+
 
 def generate_reveal_video(
     transparent_img: Image.Image,
     silhouette_img: Image.Image,
     person_name: str,
     output_path: Path,
-    theme: str = "classic"
+    theme: str = "classic",
 ) -> Path:
     """
     Generates a full 'Who is That Pykemon' reveal video with custom theme support.
@@ -121,7 +123,7 @@ def generate_reveal_video(
     bg_path = ASSETS_DIR / "background.png"
     audio_candidates = [
         ASSETS_DIR / "whos_that_pokemon.mp3",
-        ASSETS_DIR / "whos_that_pokemon.wav"
+        ASSETS_DIR / "whos_that_pokemon.wav",
     ]
     audio_path = next((p for p in audio_candidates if p.exists()), None)
 
@@ -131,7 +133,9 @@ def generate_reveal_video(
             bg_pil = raw_bg.convert("RGB").resize(video_size, Image.Resampling.LANCZOS)
             bg_np = np.array(bg_pil)
     else:
-        bg_np = np.zeros((VIDEO_HEIGHT, VIDEO_WIDTH, 3), dtype=np.uint8) + np.array([42, 117, 187], dtype=np.uint8)
+        bg_np = np.zeros((VIDEO_HEIGHT, VIDEO_WIDTH, 3), dtype=np.uint8) + np.array(
+            [42, 117, 187], dtype=np.uint8
+        )
 
     bg_clip = ImageClip(bg_np).set_duration(TOTAL_DURATION)
 
@@ -150,7 +154,7 @@ def generate_reveal_video(
 
     target_center_x = int(VIDEO_WIDTH * 0.28)
     target_center_y = int(VIDEO_HEIGHT * 0.48)
-    
+
     char_x_pos = max(10, target_center_x - orig_copy.width // 2)
     char_y_pos = max(10, target_center_y - orig_copy.height // 2)
 
@@ -182,10 +186,7 @@ def generate_reveal_video(
     )
 
     # 6. Composite Layers
-    video = CompositeVideoClip(
-        [bg_clip, sil_clip, orig_clip, text_clip],
-        size=video_size
-    )
+    video = CompositeVideoClip([bg_clip, sil_clip, orig_clip, text_clip], size=video_size)
 
     # 7. Attach Audio Track
     if audio_path and audio_path.exists():
@@ -206,7 +207,7 @@ def generate_reveal_video(
         audio_codec="aac",
         preset="ultrafast",
         threads=4,
-        logger=None
+        logger=None,
     )
 
     video.close()

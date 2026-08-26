@@ -1,14 +1,18 @@
-import time
 import logging
 import threading
+import time
 from pathlib import Path
-from app.config import TEMP_DIR, TEMP_FILE_MAX_AGE_SECONDS, CLEANUP_INTERVAL_SECONDS
+
+from app.config import CLEANUP_INTERVAL_SECONDS, TEMP_DIR, TEMP_FILE_MAX_AGE_SECONDS
 
 logger = logging.getLogger("who-is-that-pykemon.cleanup")
 
 _cleanup_thread_running = False
 
-def purge_expired_temp_files(temp_dir: Path = TEMP_DIR, max_age_seconds: int = TEMP_FILE_MAX_AGE_SECONDS) -> int:
+
+def purge_expired_temp_files(
+    temp_dir: Path = TEMP_DIR, max_age_seconds: int = TEMP_FILE_MAX_AGE_SECONDS
+) -> int:
     """
     Deletes temporary video and image files that exceed the maximum retention age.
 
@@ -33,7 +37,9 @@ def purge_expired_temp_files(temp_dir: Path = TEMP_DIR, max_age_seconds: int = T
                     if file_age > max_age_seconds:
                         file_path.unlink()
                         deleted_count += 1
-                        logger.info(f"Purged expired temporary file: {file_path.name} (Age: {int(file_age)}s)")
+                        logger.info(
+                            f"Purged expired temporary file: {file_path.name} (Age: {int(file_age)}s)"
+                        )
                 except Exception as e:
                     logger.warning(f"Error purging file {file_path}: {e}")
     except Exception as e:
@@ -41,9 +47,9 @@ def purge_expired_temp_files(temp_dir: Path = TEMP_DIR, max_age_seconds: int = T
 
     return deleted_count
 
+
 def _cleanup_worker_loop():
     """Continuous background loop executing periodic disk purge."""
-    global _cleanup_thread_running
     logger.info("Background disk cleanup worker started.")
     while _cleanup_thread_running:
         try:
@@ -52,13 +58,17 @@ def _cleanup_worker_loop():
             logger.error(f"Unexpected error in cleanup worker loop: {e}")
         time.sleep(CLEANUP_INTERVAL_SECONDS)
 
+
 def start_cleanup_worker():
     """Spawns the background disk garbage collector daemon thread."""
     global _cleanup_thread_running
     if not _cleanup_thread_running:
         _cleanup_thread_running = True
-        thread = threading.Thread(target=_cleanup_worker_loop, daemon=True, name="DiskCleanupWorker")
+        thread = threading.Thread(
+            target=_cleanup_worker_loop, daemon=True, name="DiskCleanupWorker"
+        )
         thread.start()
+
 
 def stop_cleanup_worker():
     """Signals the background disk garbage collector to shut down."""

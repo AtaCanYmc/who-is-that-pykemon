@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Maintain GitHub Actions workflow dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # Maintain Python backend dependencies
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+
+  # Maintain Node.js frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+
+  # Maintain Docker base images (Backend)
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+
+  # Maintain Docker base images (Frontend)
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"

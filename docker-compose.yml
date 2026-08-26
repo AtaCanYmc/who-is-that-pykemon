@@ -11,7 +11,7 @@ services:
       - PYTHONUNBUFFERED=1
       - TEMP_DIR=/tmp/who_is_that_pykemon
     volumes:
-      - backend-assets:/app/assets
+      - ./backend/assets:/app/assets
       - backend-temp:/tmp/who_is_that_pykemon
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -43,5 +43,4 @@ networks:
     driver: bridge
 
 volumes:
-  backend-assets:
   backend-temp:

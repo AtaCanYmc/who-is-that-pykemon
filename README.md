@@ -104,6 +104,27 @@ npm run dev
 
 ---
 
+### 3. Docker Deployment (Recommended for Production)
+
+Run both backend and frontend in isolated containers with a single command:
+
+```bash
+# Build and start all services
+docker compose up --build -d
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+```
+
+- **Frontend Application (PWA):** `http://localhost:3000`
+- **Backend API:** `http://localhost:8000`
+- **API Docs (Swagger UI):** `http://localhost:8000/docs`
+
+---
+
 ## 📡 API Reference
 
 ### `POST /generate-video`

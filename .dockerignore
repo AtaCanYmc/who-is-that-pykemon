@@ -1,0 +1,14 @@
+**/.git
+**/.gitignore
+**/.venv
+**/venv
+**/node_modules
+**/dist
+**/.vite
+**/.idea
+**/.vscode
+**/*.mp4
+**/*.wav
+**/*.pyc
+**/__pycache__
+**/.DS_Store

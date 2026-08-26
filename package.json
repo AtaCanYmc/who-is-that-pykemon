@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prepare": "husky",
+    "prepare": "husky || true",
     "test:frontend": "npm test --prefix frontend",
     "build:frontend": "npm run build --prefix frontend"
   },

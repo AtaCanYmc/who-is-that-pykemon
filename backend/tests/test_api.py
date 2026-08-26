@@ -1,46 +1,67 @@
 import sys
+import asyncio
 from pathlib import Path
-from fastapi.testclient import TestClient
+import pytest
+from httpx import AsyncClient, ASGITransport
 
-# Ensure backend root is on Python path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.main import app
 
-client = TestClient(app)
+@pytest.mark.asyncio
+async def test_health_endpoint():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        response = await ac.get("/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
 
-def test_health_endpoint():
-    """
-    Verifies that the /health endpoint returns 200 OK and valid status json.
-    """
-    response = client.get("/health")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "ok"
-    assert "Who is That Pykemon" in data["app"]
+@pytest.mark.asyncio
+async def test_get_themes_endpoint():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        response = await ac.get("/api/themes")
+        assert response.status_code == 200
+        themes = response.json()
+        assert len(themes) >= 3
+        theme_ids = [t["id"] for t in themes]
+        assert "classic" in theme_ids
+        assert "gold" in theme_ids
+        assert "neon" in theme_ids
 
-def test_generate_video_invalid_file_type():
-    """
-    Verifies that uploading a non-image file returns a 400 Bad Request error.
-    """
-    response = client.post(
-        "/generate-video",
-        files={"file": ("test.txt", b"plain text content", "text/plain")},
-        data={"name": "Test"}
-    )
-    assert response.status_code == 400
-    assert "Invalid file format" in response.json()["detail"]
+@pytest.mark.asyncio
+async def test_async_jobs_workflow(sample_image_bytes):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        # 1. Create Job
+        create_res = await ac.post(
+            "/api/jobs",
+            files={"file": ("pikachu.png", sample_image_bytes, "image/png")},
+            data={"name": "Ash", "theme": "classic"}
+        )
+        assert create_res.status_code == 202
+        job_id = create_res.json()["job_id"]
+        assert job_id is not None
 
-def test_generate_video_success(sample_image_bytes):
-    """
-    Verifies that uploading a valid image returns 200 OK and a streaming MP4 video file.
-    """
-    response = client.post(
-        "/generate-video",
-        files={"file": ("pikachu.png", sample_image_bytes, "image/png")},
-        data={"name": "Pikachu"}
-    )
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "video/mp4"
-    assert "whos_that_pikachu.mp4" in response.headers.get("content-disposition", "")
-    assert len(response.content) > 1000
+        # 2. Poll Status until completed
+        completed = False
+        for _ in range(40):
+            await asyncio.sleep(0.5)
+            status_res = await ac.get(f"/api/jobs/{job_id}")
+            assert status_res.status_code == 200
+            data = status_res.json()
+            if data["status"] == "COMPLETED":
+                completed = True
+                assert data["download_url"] is not None
+                break
+            if data["status"] == "FAILED":
+                pytest.fail(f"Job failed: {data.get('error')}")
+
+        assert completed is True
+
+        # 3. Download Video
+        download_res = await ac.get(f"/api/jobs/{job_id}/download")
+        assert download_res.status_code == 200
+        assert download_res.headers["content-type"] == "video/mp4"
+        assert len(download_res.content) > 1000

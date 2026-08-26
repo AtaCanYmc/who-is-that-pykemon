@@ -6,9 +6,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ASSETS_DIR = BASE_DIR / "assets"
 FONTS_DIR = ASSETS_DIR / "fonts"
 
-# Video generation configuration
-VIDEO_WIDTH = 1080
-VIDEO_HEIGHT = 1920
+# Video generation configuration (16:9 Widescreen to match classic Pokémon transition card)
+VIDEO_WIDTH = 1920
+VIDEO_HEIGHT = 1080
 VIDEO_FPS = 24
 SILHOUETTE_DURATION = 3.5
 TOTAL_DURATION = 7.0

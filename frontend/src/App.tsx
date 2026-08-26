@@ -302,7 +302,7 @@ export default function App() {
         ) : (
           /* Video Result View */
           <div className="flex flex-col items-center gap-4">
-            <div className="relative aspect-[9/16] w-full max-h-[460px] rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800 flex items-center justify-center">
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800 flex items-center justify-center">
               <video
                 src={videoBlobUrl}
                 controls

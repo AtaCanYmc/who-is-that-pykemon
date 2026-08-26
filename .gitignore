@@ -82,5 +82,4 @@ lerna-debug.log*
 *.avi
 *.mov
 /tmp/
-backend/assets/background.png
 backend/assets/whos_that_pokemon.wav

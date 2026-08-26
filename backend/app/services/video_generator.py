@@ -39,7 +39,7 @@ def render_reveal_text_layer(person_name: str, width: int = VIDEO_WIDTH, height:
     draw = ImageDraw.Draw(img)
 
     display_text = f"IT'S {person_name.upper()}!"
-    font_size = 72
+    font_size = 80
 
     # Attempt to load custom Pokémon font, then system bold fonts, and fallback to default
     font = None
@@ -69,8 +69,10 @@ def render_reveal_text_layer(person_name: str, width: int = VIDEO_WIDTH, height:
 
     bbox = draw.textbbox((0, 0), display_text, font=font)
     text_w = bbox[2] - bbox[0]
-    x = max(20, (width - text_w) // 2)
-    y = int(height * 0.82)
+    
+    # Place text across the top-center or bottom-center cleanly
+    x = max(30, (width - text_w) // 2)
+    y = int(height * 0.08)
 
     # Draw Pokémon-styled thick blue stroke + bright yellow text fill
     stroke_width = 8
@@ -94,7 +96,7 @@ def generate_reveal_video(
     Generates a full 'Who is That Pykemon' reveal video:
     - Stage 1 (0.0s – 3.5s): Mysterious solid black silhouette with teaser sound.
     - Stage 2 (3.5s – 7.0s): Full-color photo reveal + 'IT'S [NAME]!' banner + victory sound.
-    - Output format: 1080x1920 (9:16) H.264 / AAC MP4 video.
+    - Output format: 1920x1080 (16:9) H.264 / AAC MP4 video.
 
     Args:
         transparent_img (Image.Image): Isolated full-color subject image.
@@ -115,7 +117,7 @@ def generate_reveal_video(
     ]
     audio_path = next((p for p in audio_candidates if p.exists()), None)
 
-    # 1. Prepare Background Clip
+    # 1. Prepare Background Clip (Resized to 1920x1080 16:9)
     if bg_path.exists():
         with Image.open(bg_path) as raw_bg:
             bg_pil = raw_bg.convert("RGB").resize(video_size, Image.Resampling.LANCZOS)
@@ -125,9 +127,10 @@ def generate_reveal_video(
 
     bg_clip = ImageClip(bg_np).set_duration(TOTAL_DURATION)
 
-    # 2. Scale and Position Character Images
-    max_w = int(VIDEO_WIDTH * 0.78)
-    max_h = int(VIDEO_HEIGHT * 0.52)
+    # 2. Scale Character to Fit Perfectly Inside the White Explosion Burst (Left Half)
+    # The white burst center is at ~ (x=28%, y=48%)
+    max_w = int(VIDEO_WIDTH * 0.44)
+    max_h = int(VIDEO_HEIGHT * 0.70)
 
     orig_copy = transparent_img.copy().convert("RGBA")
     orig_copy.thumbnail((max_w, max_h), Image.Resampling.LANCZOS)
@@ -138,12 +141,17 @@ def generate_reveal_video(
     sil_np = np.array(sil_copy)
     orig_np = np.array(orig_copy)
 
-    char_y_pos = int(VIDEO_HEIGHT * 0.22)
+    # Calculate exact center position on the white explosion burst
+    target_center_x = int(VIDEO_WIDTH * 0.28)
+    target_center_y = int(VIDEO_HEIGHT * 0.48)
+    
+    char_x_pos = max(10, target_center_x - orig_copy.width // 2)
+    char_y_pos = max(10, target_center_y - orig_copy.height // 2)
 
     # 3. Silhouette Video Clip (0.0s – 3.5s)
     sil_clip = (
         ImageClip(sil_np, ismask=False, transparent=True)
-        .set_position(("center", char_y_pos))
+        .set_position((char_x_pos, char_y_pos))
         .set_start(0.0)
         .set_duration(SILHOUETTE_DURATION)
     )
@@ -152,7 +160,7 @@ def generate_reveal_video(
     reveal_duration = TOTAL_DURATION - SILHOUETTE_DURATION
     orig_clip = (
         ImageClip(orig_np, ismask=False, transparent=True)
-        .set_position(("center", char_y_pos))
+        .set_position((char_x_pos, char_y_pos))
         .set_start(SILHOUETTE_DURATION)
         .set_duration(reveal_duration)
         .crossfadein(0.2)

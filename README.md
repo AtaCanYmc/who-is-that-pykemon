@@ -57,6 +57,52 @@ who-is-that-pykemon/
 
 ---
 
+## 🔄 End-to-End Processing Workflow
+
+```mermaid
+flowchart TD
+    subgraph Frontend["📱 Frontend (React / Vite PWA)"]
+        A["📸 Photo Upload / Camera"] --> B["📝 Name Input (Optional)"]
+        B --> C["🚀 Submit (POST /generate-video)"]
+        K["🎬 16:9 Video Player Preview"] --> L["⬇️ Download MP4 / 📲 Web Share"]
+    end
+
+    subgraph Backend["⚙️ Backend (FastAPI Engine)"]
+        C --> D["🔄 EXIF Auto-Transpose & Read Bytes"]
+        
+        subgraph AIPipeline["🤖 AI Background Removal & Masking"]
+            D --> E["✂️ rembg (u2net ONNX Session)"]
+            E --> F["✨ Alpha Solidification (Hermite S-Curve)"]
+            F --> G["👤 Solid Jet-Black Silhouette (#000000)"]
+            F --> H["🎨 Crisp RGBA Full-Color Character"]
+        end
+
+        subgraph VideoEngine["🎥 MoviePy Video Synthesis"]
+            I["🖼️ 16:9 Pokémon Background (background.png)"]
+            J["🎵 Audio Sync (whos_that_pokemon.mp3)"]
+            G --> M["⏱️ Stage 1 (0.0s - 3.3s): Silhouette + Teaser Music"]
+            H --> N["⏱️ Stage 2 (3.3s - 6.77s): Reveal + IT'S [NAME]!"]
+            I --> O["🎞️ CompositeVideoClip (1920x1080)"]
+            J --> O
+            M --> O
+            N --> O
+            O --> P["⚡ FFmpeg Render (libx264 / aac)"]
+        end
+
+        P --> Q["📦 FileResponse Streaming"]
+        Q --> R["🧹 BackgroundTask: Auto-delete Temp MP4"]
+    end
+
+    Q --> K
+
+    style Frontend fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#f8fafc
+    style Backend fill:#0f172a,stroke:#eab308,stroke-width:2px,color:#f8fafc
+    style AIPipeline fill:#1e1b4b,stroke:#8b5cf6,stroke-width:1px,color:#f8fafc
+    style VideoEngine fill:#311010,stroke:#ef4444,stroke-width:1px,color:#f8fafc
+```
+
+---
+
 ## ✨ Features
 
 - **AI-Powered Background Removal:** Utilizes `rembg` (`u2net`) to isolate subjects while preserving hair and edge details.

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Type, Sparkles } from 'lucide-react';
 import { soundEffects } from '../utils/soundEffects';
+import { Translations } from '../i18n/translations';
 
 export type FontStyleId = 'arcade' | 'display' | 'sans';
 
@@ -9,21 +10,23 @@ interface LiveBadgePreviewProps {
   selectedTheme: string;
   fontStyle: FontStyleId;
   onSelectFontStyle: (style: FontStyleId) => void;
+  t: Translations;
 }
-
-export const FONT_STYLES = [
-  { id: 'display' as FontStyleId, name: 'Anime Solid', fontClass: 'font-display' },
-  { id: 'arcade' as FontStyleId, name: '8-Bit Arcade', fontClass: 'font-arcade' },
-  { id: 'sans' as FontStyleId, name: 'Modern Pro', fontClass: 'font-sans' },
-];
 
 export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
   personName,
   selectedTheme,
   fontStyle,
   onSelectFontStyle,
+  t,
 }) => {
-  const displayName = (personName.trim() || 'PYKEMON').toUpperCase();
+  const displayName = (personName.trim() || t.pykemon).toUpperCase();
+
+  const fontOptions = [
+    { id: 'display' as FontStyleId, name: t.fontAnime, fontClass: 'font-display' },
+    { id: 'arcade' as FontStyleId, name: t.fontArcade, fontClass: 'font-arcade' },
+    { id: 'sans' as FontStyleId, name: t.fontModern, fontClass: 'font-sans' },
+  ];
 
   const getThemeBadgeStyle = () => {
     switch (selectedTheme) {
@@ -31,7 +34,7 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
         return {
           strokeClass: 'text-gold-stroke',
           textColor: 'text-yellow-400',
-          badgeBg: 'from-amber-950/80 via-yellow-900/60 to-red-950/80',
+          badgeBg: 'from-amber-950/80 via-yellow-900/60 to-red-950/80 dark:from-amber-950/80 dark:via-yellow-900/60 dark:to-red-950/80',
           badgeBorder: 'border-yellow-500/50',
           glow: 'shadow-[0_0_20px_rgba(234,179,8,0.3)]',
         };
@@ -39,7 +42,7 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
         return {
           strokeClass: 'text-neon-stroke',
           textColor: 'text-cyan-300',
-          badgeBg: 'from-fuchsia-950/80 via-purple-900/60 to-cyan-950/80',
+          badgeBg: 'from-fuchsia-950/80 via-purple-900/60 to-cyan-950/80 dark:from-fuchsia-950/80 dark:via-purple-900/60 dark:to-cyan-950/80',
           badgeBorder: 'border-cyan-400/50',
           glow: 'shadow-[0_0_20px_rgba(6,182,212,0.4)]',
         };
@@ -47,7 +50,7 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
         return {
           strokeClass: 'text-poke-stroke-sm sm:text-poke-stroke',
           textColor: 'text-poke-yellow',
-          badgeBg: 'from-blue-950/80 via-indigo-900/60 to-red-950/80',
+          badgeBg: 'from-blue-950/90 via-indigo-900/70 to-red-950/90 dark:from-blue-950/90 dark:via-indigo-900/70 dark:to-red-950/90',
           badgeBorder: 'border-poke-blue/60',
           glow: 'shadow-[0_0_25px_rgba(42,117,187,0.4)]',
         };
@@ -59,11 +62,11 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
   return (
     <div className="flex flex-col gap-2.5 w-full">
       <div className="flex items-center justify-between">
-        <label className="text-[11px] font-bold text-slate-300 tracking-wider uppercase flex items-center gap-1.5">
+        <label className="text-[11px] font-bold text-slate-300 dark:text-slate-300 light:text-slate-700 tracking-wider uppercase flex items-center gap-1.5">
           <Type className="w-3.5 h-3.5 text-poke-yellow" />
-          <span>Canlı Yazı & Stil Önizlemesi</span>
+          <span>{t.livePreviewTitle}</span>
         </label>
-        <span className="text-[10px] text-slate-500 font-mono">CANLI ÖNİZLEME</span>
+        <span className="text-[10px] text-slate-500 font-mono">{t.livePreviewBadge}</span>
       </div>
 
       {/* Live Badge Preview Card */}
@@ -74,8 +77,8 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
           <Sparkles className="w-12 h-12 text-white" />
         </div>
 
-        <span className="text-[10px] tracking-widest text-slate-300 uppercase font-black mb-0.5 opacity-80">
-          AÇILIŞ ANINDA SÖYLENECEK METİN
+        <span className="text-[10px] tracking-widest text-slate-300 uppercase font-black mb-0.5 opacity-90">
+          {t.livePreviewAnnounce}
         </span>
 
         <div
@@ -87,13 +90,13 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
               : 'font-sans'
           } text-center break-all transition-all duration-200`}
         >
-          IT&apos;S {displayName}!
+          {t.revealPrefix} {displayName}!
         </div>
       </div>
 
       {/* Font Style Switcher */}
       <div className="grid grid-cols-3 gap-1.5 w-full">
-        {FONT_STYLES.map((style) => {
+        {fontOptions.map((style) => {
           const isSelected = fontStyle === style.id;
           return (
             <button
@@ -106,7 +109,7 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
               className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all ${
                 isSelected
                   ? 'bg-poke-yellow text-slate-950 border-poke-yellow shadow-md scale-[1.02]'
-                  : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                  : 'bg-slate-900/80 dark:bg-slate-900/80 light:bg-slate-100 border-slate-800 dark:border-slate-800 light:border-slate-300 text-slate-400 dark:text-slate-400 light:text-slate-600 hover:text-white dark:hover:text-white light:hover:text-slate-950'
               }`}
             >
               {style.name}

@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ZoomIn, ZoomOut, RotateCcw, Check, X, Move } from 'lucide-react';
+import { Translations } from '../i18n/translations';
 
 interface ImageCropperProps {
   imageUrl: string;
   onCropComplete: (croppedBlob: Blob) => void;
   onCancel: () => void;
+  t: Translations;
 }
 
 /**
@@ -15,6 +17,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
   imageUrl,
   onCropComplete,
   onCancel,
+  t,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zoom, setZoom] = useState<number>(1);
@@ -58,35 +61,32 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
 
     // Maintain aspect ratio
     const scale = Math.min(size / imageObj.width, size / imageObj.height);
-    const drawW = imageObj.width * scale;
-    const drawH = imageObj.height * scale;
+    const w = imageObj.width * scale;
+    const h = imageObj.height * scale;
 
-    ctx.drawImage(imageObj, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.drawImage(imageObj, -w / 2, -h / 2, w, h);
     ctx.restore();
 
-    // Draw Pokémon Target Alignment Overlay
-    ctx.save();
-    ctx.strokeStyle = '#FFCB05';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([8, 6]);
-
-    // Center focal circle
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size * 0.38, 0, Math.PI * 2);
-    ctx.stroke();
+    // Draw alignment guides (crosshairs and rule-of-thirds grid)
+    ctx.strokeStyle = 'rgba(255, 203, 5, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 6]);
 
     // Center crosshair
-    ctx.strokeStyle = 'rgba(255, 203, 5, 0.4)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([]);
     ctx.beginPath();
-    ctx.moveTo(size / 2 - 20, size / 2);
-    ctx.lineTo(size / 2 + 20, size / 2);
-    ctx.moveTo(size / 2, size / 2 - 20);
-    ctx.lineTo(size / 2, size / 2 + 20);
+    ctx.moveTo(size / 2, 40);
+    ctx.lineTo(size / 2, size - 40);
+    ctx.moveTo(40, size / 2);
+    ctx.lineTo(size - 40, size / 2);
     ctx.stroke();
 
-    ctx.restore();
+    // Center target oval
+    ctx.beginPath();
+    ctx.ellipse(size / 2, size / 2, size * 0.38, size * 0.42, 0, 0, 2 * Math.PI);
+    ctx.strokeStyle = 'rgba(42, 117, 187, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.stroke();
   }, [imageObj, zoom, offset]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -96,10 +96,15 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDragging) return;
-    setOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+    setOffset({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
   };
 
-  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
     if (e.touches.length === 1) {
@@ -119,55 +124,62 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
     });
   };
 
-  const handleTouchEnd = () => setIsDragging(false);
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
 
   const handleApplyCrop = () => {
-    if (!canvasRef.current || !imageObj) return;
+    if (!imageObj) return;
+
+    // Render high-res output on offscreen canvas
     const outputCanvas = document.createElement('canvas');
-    const outSize = 800;
+    const outSize = Math.max(imageObj.width, imageObj.height, 1080);
     outputCanvas.width = outSize;
     outputCanvas.height = outSize;
     const ctx = outputCanvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, outSize, outSize);
+    // Transparent background for seamless AI matting
+    ctx.clearRect(0, 0, outSize, outSize);
 
-    const ratio = outSize / 600;
     ctx.save();
-    ctx.translate(outSize / 2 + offset.x * ratio, outSize / 2 + offset.y * ratio);
-    ctx.scale(zoom * ratio, zoom * ratio);
+    // Map offset from 600px preview scale to outSize
+    const scaleFactor = outSize / 600;
+    ctx.translate(outSize / 2 + offset.x * scaleFactor, outSize / 2 + offset.y * scaleFactor);
+    ctx.scale(zoom, zoom);
 
-    const scale = Math.min(600 / imageObj.width, 600 / imageObj.height);
-    const drawW = imageObj.width * scale;
-    const drawH = imageObj.height * scale;
+    const baseScale = Math.min(outSize / imageObj.width, outSize / imageObj.height);
+    const w = imageObj.width * baseScale;
+    const h = imageObj.height * baseScale;
 
-    ctx.drawImage(imageObj, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.drawImage(imageObj, -w / 2, -h / 2, w, h);
     ctx.restore();
 
     outputCanvas.toBlob((blob) => {
-      if (blob) onCropComplete(blob);
+      if (blob) {
+        onCropComplete(blob);
+      }
     }, 'image/png');
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-3xl p-5 max-w-sm w-full shadow-2xl flex flex-col items-center">
+      <div className="bg-slate-900 dark:bg-slate-900 light:bg-white border border-slate-700 dark:border-slate-700 light:border-slate-200 rounded-3xl p-5 max-w-sm w-full shadow-2xl flex flex-col items-center">
         <div className="flex items-center justify-between w-full mb-3">
           <div className="flex items-center gap-2">
             <Move className="w-4 h-4 text-poke-yellow" />
-            <h3 className="font-bold text-sm text-white">Görseli Konumlandır & Yakınlaştır</h3>
+            <h3 className="font-bold text-sm text-white dark:text-white light:text-slate-900">{t.cropTitle}</h3>
           </div>
           <button
             onClick={onCancel}
-            className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors"
+            className="p-1 text-slate-400 hover:text-white dark:hover:text-white light:hover:text-slate-950 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Canvas Display */}
-        <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 flex items-center justify-center cursor-grab active:cursor-grabbing shadow-inner">
+        <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-slate-700 dark:border-slate-700 light:border-slate-300 bg-slate-950 flex items-center justify-center cursor-grab active:cursor-grabbing shadow-inner">
           <canvas
             ref={canvasRef}
             className="w-full h-full object-contain"
@@ -191,7 +203,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             step="0.05"
             value={zoom}
             onChange={(e) => setZoom(parseFloat(e.target.value))}
-            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-poke-yellow"
+            className="w-full h-2 bg-slate-800 dark:bg-slate-800 light:bg-slate-200 rounded-lg appearance-none cursor-pointer accent-poke-yellow"
           />
           <ZoomIn className="w-4 h-4 text-slate-400" />
         </div>
@@ -204,10 +216,10 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
               setZoom(1);
               setOffset({ x: 0, y: 0 });
             }}
-            className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all"
+            className="py-2.5 px-3 bg-slate-800 dark:bg-slate-800 light:bg-slate-100 hover:bg-slate-700 dark:hover:bg-slate-700 light:hover:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Sıfırla</span>
+            <span>{t.cropReset}</span>
           </button>
 
           <button
@@ -216,7 +228,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             className="py-2.5 px-3 bg-poke-yellow hover:bg-yellow-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95"
           >
             <Check className="w-4 h-4" />
-            <span>Onayla</span>
+            <span>{t.cropApply}</span>
           </button>
         </div>
       </div>

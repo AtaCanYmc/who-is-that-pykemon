@@ -19,23 +19,37 @@
     -webkit-text-stroke: 2px #FF007F;
     text-shadow: 0 0 12px #00FFFF, 0 0 20px #FF007F;
   }
-  .glass-card {
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .glass-card-interactive {
+
+  /* Dark Glassmorphism */
+  .dark .glass-card-interactive {
     background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
   }
-  .retro-grid-bg {
+
+  /* Light Glassmorphism */
+  html:not(.dark) .glass-card-interactive {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(203, 213, 225, 0.8);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .dark .retro-grid-bg {
+    background-color: #020617;
     background-size: 32px 32px;
     background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                       linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+
+  html:not(.dark) .retro-grid-bg {
+    background-color: #F8FAFC;
+    background-size: 32px 32px;
+    background-image: linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
   }
 }
 
@@ -44,11 +58,19 @@ body {
   font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #020617;
-  color: #F8FAFC;
   overflow-x: hidden;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+html.dark body {
+  background-color: #020617;
+  color: #F8FAFC;
+}
+
+html:not(.dark) body {
+  background-color: #F8FAFC;
+  color: #0F172A;
 }
 
 /* Custom scrollbars */
@@ -57,12 +79,12 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0F19;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #334155;
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
 }

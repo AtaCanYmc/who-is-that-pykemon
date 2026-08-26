@@ -216,7 +216,19 @@ export default function App() {
     formData.append('name', personName.trim() || t.pykemon);
     formData.append('theme', selectedTheme);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    // Determine API Base URL smartly
+    const getApiBaseUrl = (): string => {
+      if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+      }
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return 'http://localhost:8000';
+      }
+      // On public HTTPS deployments without VITE_API_URL, default to relative path
+      return '';
+    };
+
+    const API_URL = getApiBaseUrl();
 
     try {
       // 1. Submit async job
@@ -259,7 +271,11 @@ export default function App() {
         }
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred during video generation.');
+      if (err instanceof TypeError || err.message?.includes('fetch') || err.message?.includes('NetworkError')) {
+        setError(t.backendConnectionError);
+      } else {
+        setError(err.message || 'An error occurred during video generation.');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -14,6 +14,7 @@ export interface Translations {
   changePhoto: string;
   cropAdjust: string;
   invalidFileError: string;
+  backendConnectionError: string;
 
   // Name & Preview
   nameLabel: string;
@@ -100,6 +101,7 @@ export const translations: Record<Language, Translations> = {
     changePhoto: 'Fotoğrafı Değiştir',
     cropAdjust: 'Kırp / Odakla',
     invalidFileError: 'Lütfen geçerli bir görsel dosyası seçin (PNG, JPG, WEBP).',
+    backendConnectionError: 'Backend sunucusuna bağlanılamadı. Vercel üzerinde VITE_API_URL ortam değişkenini (örn: https://your-backend.onrender.com) tanımladığınızdan emin olun.',
 
     nameLabel: 'Açılışta Söylenecek İsim / Metin',
     nameOptional: 'opsiyonel',
@@ -177,6 +179,7 @@ export const translations: Record<Language, Translations> = {
     changePhoto: 'Change Photo',
     cropAdjust: 'Crop / Center',
     invalidFileError: 'Please select a valid image file (PNG, JPG, WEBP).',
+    backendConnectionError: 'Could not connect to backend server. Make sure VITE_API_URL is configured in your deployment settings (e.g. https://your-backend.onrender.com).',
 
     nameLabel: 'Name / Text Announced on Reveal',
     nameOptional: 'optional',
@@ -254,6 +257,7 @@ export const translations: Record<Language, Translations> = {
     changePhoto: 'Changer de photo',
     cropAdjust: 'Recadrer / Centrer',
     invalidFileError: 'Veuillez sélectionner un fichier image valide (PNG, JPG, WEBP).',
+    backendConnectionError: 'Impossible de se connecter au serveur backend. Assurez-vous que VITE_API_URL est configuré dans vos paramètres de déploiement (ex: https://your-backend.onrender.com).',
 
     nameLabel: 'Nom / Texte annoncé lors de la révélation',
     nameOptional: 'optionnel',

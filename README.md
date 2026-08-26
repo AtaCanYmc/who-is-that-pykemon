@@ -10,7 +10,14 @@
   <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/Pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white" alt="Pytest" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License" />
+</p>
+
+<p align="center">
+  <a href="https://vercel.com/new/clone?repository-url=https://github.com/atacand/who-is-that-pykemon&env=VITE_API_URL&envDescription=Backend%20API%20URL%20for%20video%20generation">
+    <img src="https://vercel.com/button" alt="Deploy with Vercel" />
+  </a>
 </p>
 
 <h1 align="center">⚡️ WHO IS THAT PYKEMON? ⚡️</h1>
@@ -150,7 +157,18 @@ docker compose down
 
 ---
 
-### 2. Local Development Setup
+### 2. Deploy Frontend to Vercel
+
+You can deploy the frontend PWA to Vercel in seconds:
+
+1. Click the **Deploy with Vercel** button above or import the repository in [Vercel Dashboard](https://vercel.com/dashboard).
+2. Set the **Environment Variable**:
+   - `VITE_API_URL`: URL of your deployed backend (e.g. `https://your-backend-domain.com`).
+3. Click **Deploy**. Vercel will automatically use `vercel.json` to build the Vite PWA and configure caching & Service Worker headers.
+
+---
+
+### 3. Local Development Setup
 
 #### Backend Setup:
 ```bash

@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-# Pillow >= 10 uyumluluk yaması (MoviePy Image.ANTIALIAS kullanımını destekler)
+# Pillow >= 10 compatibility patch (maintains backwards compatibility with MoviePy's Image.ANTIALIAS)
 if not hasattr(Image, "ANTIALIAS"):
     Image.ANTIALIAS = Image.Resampling.LANCZOS
 
@@ -25,7 +25,15 @@ from app.utils.assets_init import ensure_assets
 
 def render_reveal_text_layer(person_name: str, width: int = VIDEO_WIDTH, height: int = VIDEO_HEIGHT) -> np.ndarray:
     """
-    Klasik Pokémon stili sarı dolgu & mavi konturlu 'IT'S [NAME]!' katmanı üretir.
+    Renders the classic Pokémon-style 'IT'S [NAME]!' badge with yellow fill and blue outline.
+
+    Args:
+        person_name (str): Name or title of the subject.
+        width (int, optional): Canvas width in pixels. Defaults to VIDEO_WIDTH.
+        height (int, optional): Canvas height in pixels. Defaults to VIDEO_HEIGHT.
+
+    Returns:
+        np.ndarray: RGBA image array containing the formatted text overlay.
     """
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -33,7 +41,7 @@ def render_reveal_text_layer(person_name: str, width: int = VIDEO_WIDTH, height:
     display_text = f"IT'S {person_name.upper()}!"
     font_size = 72
 
-    # Varsa özel font, yoksa sistem fontu
+    # Attempt to load custom Pokémon font, then system bold fonts, and fallback to default
     font = None
     custom_font_files = list(FONTS_DIR.glob("*.ttf")) if FONTS_DIR.exists() else []
     if custom_font_files:
@@ -64,7 +72,7 @@ def render_reveal_text_layer(person_name: str, width: int = VIDEO_WIDTH, height:
     x = max(20, (width - text_w) // 2)
     y = int(height * 0.82)
 
-    # Kalın mavi çerçeve ve sarı metin dolgusu
+    # Draw Pokémon-styled thick blue stroke + bright yellow text fill
     stroke_width = 8
     draw.text(
         (x, y),
@@ -83,10 +91,19 @@ def generate_reveal_video(
     output_path: Path
 ) -> Path:
     """
-    Who is That Pykemon videosunu üretir:
-    - 0.0s - 3.5s: Siyah siluet
-    - 3.5s - 7.0s: Renkli fotoğraf + Pokémon isim yazısı
-    - Ses efekti ve senkronizasyon
+    Generates a full 'Who is That Pykemon' reveal video:
+    - Stage 1 (0.0s – 3.5s): Mysterious solid black silhouette with teaser sound.
+    - Stage 2 (3.5s – 7.0s): Full-color photo reveal + 'IT'S [NAME]!' banner + victory sound.
+    - Output format: 1080x1920 (9:16) H.264 / AAC MP4 video.
+
+    Args:
+        transparent_img (Image.Image): Isolated full-color subject image.
+        silhouette_img (Image.Image): Solid black silhouette image.
+        person_name (str): Name or title to announce.
+        output_path (Path): Destination path for the rendered MP4 file.
+
+    Returns:
+        Path: Path to the generated video file.
     """
     ensure_assets(ASSETS_DIR)
 
@@ -98,7 +115,7 @@ def generate_reveal_video(
     ]
     audio_path = next((p for p in audio_candidates if p.exists()), None)
 
-    # 1. Arka Plan Klibi (Pillow ile doğrudan 1080x1920 boyutuna getirip NumPy yapıyoruz)
+    # 1. Prepare Background Clip
     if bg_path.exists():
         with Image.open(bg_path) as raw_bg:
             bg_pil = raw_bg.convert("RGB").resize(video_size, Image.Resampling.LANCZOS)
@@ -108,7 +125,7 @@ def generate_reveal_video(
 
     bg_clip = ImageClip(bg_np).set_duration(TOTAL_DURATION)
 
-    # 2. Karakter Görselini Ölçekle ve Konumlandır
+    # 2. Scale and Position Character Images
     max_w = int(VIDEO_WIDTH * 0.78)
     max_h = int(VIDEO_HEIGHT * 0.52)
 
@@ -123,7 +140,7 @@ def generate_reveal_video(
 
     char_y_pos = int(VIDEO_HEIGHT * 0.22)
 
-    # 3. Siluet Klibi (0 -> 3.5 sn)
+    # 3. Silhouette Video Clip (0.0s – 3.5s)
     sil_clip = (
         ImageClip(sil_np, ismask=False, transparent=True)
         .set_position(("center", char_y_pos))
@@ -131,7 +148,7 @@ def generate_reveal_video(
         .set_duration(SILHOUETTE_DURATION)
     )
 
-    # 4. Orijinal Görsel Klibi (3.5 -> 7.0 sn)
+    # 4. Color Reveal Video Clip (3.5s – 7.0s)
     reveal_duration = TOTAL_DURATION - SILHOUETTE_DURATION
     orig_clip = (
         ImageClip(orig_np, ismask=False, transparent=True)
@@ -141,7 +158,7 @@ def generate_reveal_video(
         .crossfadein(0.2)
     )
 
-    # 5. İsim Yazısı Klibi (3.5 -> 7.0 sn)
+    # 5. Name Text Overlay Clip (3.5s – 7.0s)
     text_np = render_reveal_text_layer(person_name, VIDEO_WIDTH, VIDEO_HEIGHT)
     text_clip = (
         ImageClip(text_np, transparent=True)
@@ -150,13 +167,13 @@ def generate_reveal_video(
         .crossfadein(0.15)
     )
 
-    # 6. Kompozisyon
+    # 6. Composite Layers
     video = CompositeVideoClip(
         [bg_clip, sil_clip, orig_clip, text_clip],
         size=video_size
     )
 
-    # 7. Ses Entegrasyonu
+    # 7. Attach Audio Track
     if audio_path and audio_path.exists():
         try:
             audio_clip = AudioFileClip(str(audio_path))
@@ -166,7 +183,7 @@ def generate_reveal_video(
         except Exception as e:
             print(f"Audio attachment warning: {e}")
 
-    # 8. Render
+    # 8. Encode and Write MP4 Video File
     output_path.parent.mkdir(parents=True, exist_ok=True)
     video.write_videofile(
         str(output_path),

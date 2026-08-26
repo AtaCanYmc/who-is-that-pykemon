@@ -20,7 +20,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS ayarları
+# Configure Cross-Origin Resource Sharing (CORS) for PWA frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,13 +30,22 @@ app.add_middleware(
 )
 
 @app.on_event("startup")
-async def startup_event():
-    """Uygulama açılırken varsayılan varlıkları ve dizinleri hazırla."""
+async def startup_event() -> None:
+    """
+    FastAPI startup lifecycle hook:
+    Ensures default asset files, fonts, and directories exist.
+    """
     ensure_assets(ASSETS_DIR)
     logger.info("Assets & directory initialization complete.")
 
-def remove_temp_file(file_path: str):
-    """Geçici videoyu istemciye ilettikten sonra sunucudan temizler."""
+def remove_temp_file(file_path: str) -> None:
+    """
+    Background cleanup task:
+    Deletes the temporary generated video file after client download completes.
+
+    Args:
+        file_path (str): Absolute file path of the temporary video.
+    """
     try:
         p = Path(file_path)
         if p.exists():
@@ -46,38 +55,62 @@ def remove_temp_file(file_path: str):
         logger.warning(f"Failed to cleanup temp file {file_path}: {e}")
 
 @app.get("/health")
-def health():
+def health() -> dict:
+    """
+    Health check endpoint.
+
+    Returns:
+        dict: Operational status and application name.
+    """
     return {"status": "ok", "app": "Who is That Pykemon"}
 
 @app.post("/generate-video")
 async def generate_video_endpoint(
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(..., description="Yüklenecek insan / karakter fotoğrafı"),
-    name: str = Form("Someone", description="Açılışta gösterilecek isim")
-):
+    file: UploadFile = File(..., description="Uploaded portrait or character photo"),
+    name: str = Form("Someone", description="Name displayed during the reveal")
+) -> FileResponse:
+    """
+    Processes an uploaded image to create a 'Who's that Pokémon?' reveal meme video:
+    1. Removes background with rembg.
+    2. Converts transparent image into solid black silhouette.
+    3. Renders 9:16 vertical video with music and text reveal.
+    4. Queues background deletion of temporary file.
+
+    Args:
+        background_tasks (BackgroundTasks): FastAPI background task manager.
+        file (UploadFile): Image file uploaded via multipart/form-data.
+        name (str): Person name to announce in the video.
+
+    Returns:
+        FileResponse: Stream of the generated MP4 video file.
+
+    Raises:
+        HTTPException: If file is missing, invalid MIME type, or processing fails.
+    """
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=400,
-            detail="Geçersiz dosya formatı. Lütfen PNG, JPG veya WEBP formatında bir görsel yükleyin."
+            detail="Invalid file format. Please upload an image (PNG, JPG, JPEG, or WEBP)."
         )
 
     clean_name = name.strip() or "Someone"
 
     try:
-        # 1. Fotoğrafı Oku
+        # 1. Read input image bytes
         image_bytes = await file.read()
         if len(image_bytes) == 0:
-            raise HTTPException(status_code=400, detail="Boş dosya yüklendi.")
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
         logger.info(f"Processing photo for '{clean_name}' (Size: {len(image_bytes)} bytes)...")
 
-        # 2. Arka Planı Temizle (rembg)
+        # 2. AI Background Removal (rembg)
         transparent_img = process_and_remove_background(image_bytes)
 
-        # 3. Saf Siyah Silueti Oluştur
+        # 3. Silhouette Generation
         silhouette_img = generate_black_silhouette(transparent_img)
 
-        # 4. Video Render Et
+        # 4. Render Video via MoviePy
         video_id = uuid.uuid4().hex
         output_video_path = TEMP_DIR / f"pykemon_{video_id}.mp4"
 
@@ -90,7 +123,7 @@ async def generate_video_endpoint(
 
         logger.info(f"Video rendered successfully: {output_video_path}")
 
-        # 5. İstemci indirdikten sonra geçici dosyayı sil
+        # 5. Schedule temporary file removal after response transmission
         background_tasks.add_task(remove_temp_file, str(output_video_path))
 
         safe_filename = f"whos_that_{clean_name.lower().replace(' ', '_')}.mp4"
@@ -106,4 +139,4 @@ async def generate_video_endpoint(
 
     except Exception as e:
         logger.error(f"Error during video generation: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Video oluşturulamadı: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate video: {str(e)}")

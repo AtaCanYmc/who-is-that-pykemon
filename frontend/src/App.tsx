@@ -9,6 +9,13 @@ import {
   Smartphone
 } from 'lucide-react';
 
+/**
+ * Main Application Component: Who is That Pykemon? (PWA)
+ *
+ * Provides photo upload/camera trigger, optional subject name input,
+ * animated processing feedback, 9:16 video preview player,
+ * and native Web Share & download integrations.
+ */
 export default function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -22,6 +29,9 @@ export default function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Listen for PWA installation prompts and standalone display mode.
+   */
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
@@ -39,6 +49,9 @@ export default function App() {
     };
   }, []);
 
+  /**
+   * Triggers the native browser PWA install prompt.
+   */
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
@@ -49,6 +62,9 @@ export default function App() {
     }
   };
 
+  /**
+   * Handles user file selection from file picker or camera.
+   */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -59,6 +75,9 @@ export default function App() {
     }
   };
 
+  /**
+   * Handles drag-and-drop file upload.
+   */
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
@@ -69,17 +88,20 @@ export default function App() {
         setVideoBlobUrl(null);
         setError(null);
       } else {
-        setError('Lütfen geçerli bir görsel dosyası sürükleyin.');
+        setError('Please drop a valid image file (PNG, JPG, WEBP).');
       }
     }
   };
 
+  /**
+   * Submits the image to FastAPI backend to generate the reveal video.
+   */
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) return;
 
     setIsLoading(true);
-    setProgressMsg('Arka plan temizleniyor & siluet oluşturuluyor...');
+    setProgressMsg('Removing background & creating silhouette...');
     setError(null);
 
     const formData = new FormData();
@@ -87,7 +109,7 @@ export default function App() {
     formData.append('name', personName.trim() || 'Pykemon');
 
     const timer = setTimeout(() => {
-      setProgressMsg('Pokémon reveal videosu ve sesler sentezleniyor...');
+      setProgressMsg('Synthesizing Pokémon reveal video & sound effects...');
     }, 2500);
 
     try {
@@ -99,14 +121,14 @@ export default function App() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Video oluşturulamadı. Lütfen tekrar deneyin.');
+        throw new Error(errorData.detail || 'Failed to generate video. Please try again.');
       }
 
       const blob = await response.blob();
       const videoUrl = URL.createObjectURL(blob);
       setVideoBlobUrl(videoUrl);
     } catch (err: any) {
-      setError(err.message || 'Sunucuya bağlanırken bir hata oluştu.');
+      setError(err.message || 'An error occurred while connecting to the server.');
     } finally {
       clearTimeout(timer);
       setIsLoading(false);
@@ -114,6 +136,9 @@ export default function App() {
     }
   };
 
+  /**
+   * Triggers native mobile share sheet using Web Share API.
+   */
   const handleShare = async () => {
     if (!videoBlobUrl) return;
     try {
@@ -135,7 +160,7 @@ export default function App() {
           url: window.location.href,
         });
       } else {
-        alert('Cihazınız doğrudan dosya paylaşımını desteklemiyor. "İndir" butonunu kullanarak videoyu cihazınıza kaydedebilirsiniz.');
+        alert('Your device does not support direct file sharing. Use the "Download" button to save the video.');
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
@@ -144,6 +169,9 @@ export default function App() {
     }
   };
 
+  /**
+   * Resets application state to allow creating a new video.
+   */
   const resetAll = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
@@ -164,9 +192,9 @@ export default function App() {
           >
             <div className="flex items-center gap-2">
               <Smartphone className="w-4 h-4 text-poke-yellow animate-bounce" />
-              <span>Ana Ekrana Ekle (PWA)</span>
+              <span>Add to Home Screen (PWA)</span>
             </div>
-            <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold">YÜKLE</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold">INSTALL</span>
           </button>
         )}
 
@@ -180,11 +208,11 @@ export default function App() {
           </h1>
         </div>
         <p className="text-xs sm:text-sm text-slate-400 mt-1 text-center font-medium">
-          Fotoğrafını yükle, anında klasik Pokémon geçiş meme videosunu üret!
+          Upload a photo to instantly generate your nostalgic Pokémon reveal meme video!
         </p>
       </header>
 
-      {/* Main Content Card */}
+      {/* Main Card Content */}
       <main className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-xl flex flex-col my-auto">
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/40 rounded-2xl flex items-start gap-2.5 text-red-200 text-xs sm:text-sm">
@@ -195,7 +223,7 @@ export default function App() {
 
         {!videoBlobUrl ? (
           <form onSubmit={handleGenerate} className="flex flex-col gap-4">
-            {/* Fotoğraf Yükleme / Dropzone */}
+            {/* Image Upload Dropzone */}
             <div
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
@@ -211,7 +239,7 @@ export default function App() {
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-contain p-2" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-medium text-xs backdrop-blur-[2px]">
                     <Camera className="w-4 h-4 text-poke-yellow" />
-                    Fotoğrafı Değiştir
+                    Change Photo
                   </div>
                 </>
               ) : (
@@ -219,8 +247,8 @@ export default function App() {
                   <div className="p-4 rounded-2xl bg-poke-red/10 border border-poke-red/20 group-hover:bg-poke-yellow/20 group-hover:border-poke-yellow/40 text-poke-yellow transition-all mb-3 shadow-inner">
                     <Camera className="w-8 h-8 text-poke-yellow" />
                   </div>
-                  <span className="font-semibold text-sm text-slate-200">Fotoğraf Seç veya Kamerayı Aç</span>
-                  <span className="text-xs text-slate-500 mt-1">PNG, JPG, WEBP • Portre önerilir</span>
+                  <span className="font-semibold text-sm text-slate-200">Choose Photo or Open Camera</span>
+                  <span className="text-xs text-slate-500 mt-1">PNG, JPG, WEBP • Portrait recommended</span>
                 </div>
               )}
               <input
@@ -232,10 +260,10 @@ export default function App() {
               />
             </div>
 
-            {/* İsim Girişi */}
+            {/* Name Input Field */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="name" className="text-xs font-bold text-slate-300 tracking-wide uppercase">
-                Açılışta Söylenecek İsim (Opsiyonel)
+                Announced Name (Optional)
               </label>
               <input
                 id="name"
@@ -243,12 +271,12 @@ export default function App() {
                 maxLength={30}
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
-                placeholder="Örn: Caner, Hoca, Pikachu..."
+                placeholder="e.g. Alex, Satoshi, Pikachu..."
                 className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-poke-yellow text-sm font-medium text-white placeholder-slate-500 transition-all"
               />
             </div>
 
-            {/* Üret Butonu */}
+            {/* Generate Action Button */}
             <button
               type="submit"
               disabled={!selectedFile || isLoading}
@@ -261,18 +289,18 @@ export default function App() {
               {isLoading ? (
                 <div className="flex items-center gap-2.5">
                   <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>
-                  <span className="text-xs normal-case">{progressMsg || 'İşleniyor...'}</span>
+                  <span className="text-xs normal-case">{progressMsg || 'Processing...'}</span>
                 </div>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 text-poke-yellow" />
-                  <span>Videoyu Oluştur</span>
+                  <span>Generate Video</span>
                 </>
               )}
             </button>
           </form>
         ) : (
-          /* Video Sonuç Ekranı */
+          /* Video Result View */
           <div className="flex flex-col items-center gap-4">
             <div className="relative aspect-[9/16] w-full max-h-[460px] rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800 flex items-center justify-center">
               <video
@@ -291,7 +319,7 @@ export default function App() {
                 className="py-3.5 px-4 bg-poke-yellow hover:bg-yellow-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
               >
                 <Download className="w-4 h-4" />
-                <span>İndir</span>
+                <span>Download</span>
               </a>
 
               <button
@@ -299,7 +327,7 @@ export default function App() {
                 className="py-3.5 px-4 bg-poke-blue hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Paylaş</span>
+                <span>Share</span>
               </button>
             </div>
 
@@ -308,7 +336,7 @@ export default function App() {
               className="w-full py-3 bg-slate-800/80 hover:bg-slate-800 text-slate-300 font-bold rounded-xl flex items-center justify-center gap-2 text-xs transition-all border border-slate-700 active:scale-98"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Yeni Video Hazırla</span>
+              <span>Create Another Video</span>
             </button>
           </div>
         )}

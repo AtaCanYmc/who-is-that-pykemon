@@ -1,4 +1,7 @@
 import logging
+import re
+import unicodedata
+import urllib.parse
 import uuid
 from pathlib import Path
 
@@ -158,6 +161,43 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
     )
 
 
+def get_safe_content_disposition(person_name: str) -> tuple[str, str]:
+    """
+    Sanitizes Unicode / Turkish characters for HTTP Content-Disposition headers.
+    Returns (ascii_filename, content_disposition_header_value).
+    """
+    tr_map = {
+        "ç": "c",
+        "Ç": "C",
+        "ğ": "g",
+        "Ğ": "G",
+        "ı": "i",
+        "I": "I",
+        "İ": "I",
+        "i": "i",
+        "ö": "o",
+        "Ö": "O",
+        "ş": "s",
+        "Ş": "S",
+        "ü": "u",
+        "Ü": "U",
+    }
+    clean = person_name.strip() or "pykemon"
+    for tr_char, ascii_char in tr_map.items():
+        clean = clean.replace(tr_char, ascii_char)
+    normalized = unicodedata.normalize("NFKD", clean).encode("ascii", "ignore").decode("ascii")
+    safe_ascii = re.sub(r"[^a-zA-Z0-9_\-]", "_", normalized).strip("_").lower() or "pykemon"
+
+    ascii_filename = f"whos_that_{safe_ascii}.mp4"
+    utf8_filename = urllib.parse.quote(
+        f"whos_that_{(person_name.strip() or 'pykemon').lower().replace(' ', '_')}.mp4"
+    )
+    content_disposition = (
+        f"attachment; filename=\"{ascii_filename}\"; filename*=UTF-8''{utf8_filename}"
+    )
+    return ascii_filename, content_disposition
+
+
 @app.get("/api/jobs/{job_id}/download")
 async def download_job_video(job_id: str, background_tasks: BackgroundTasks) -> FileResponse:
     """
@@ -170,14 +210,14 @@ async def download_job_video(job_id: str, background_tasks: BackgroundTasks) -> 
     if job.status != JobStatus.COMPLETED or not job.video_path or not job.video_path.exists():
         raise HTTPException(status_code=400, detail="Video is not ready or has expired.")
 
-    safe_filename = f"whos_that_{job.person_name.lower().replace(' ', '_')}.mp4"
+    ascii_filename, content_disposition = get_safe_content_disposition(job.person_name)
     return FileResponse(
         path=str(job.video_path),
         media_type="video/mp4",
-        filename=safe_filename,
+        filename=ascii_filename,
         headers={
             "Access-Control-Expose-Headers": "Content-Disposition",
-            "Content-Disposition": f'attachment; filename="{safe_filename}"',
+            "Content-Disposition": content_disposition,
         },
     )
 
@@ -218,14 +258,14 @@ async def generate_video_endpoint(
 
         background_tasks.add_task(remove_temp_file, str(output_video_path))
 
-        safe_filename = f"whos_that_{clean_name.lower().replace(' ', '_')}.mp4"
+        ascii_filename, content_disposition = get_safe_content_disposition(clean_name)
         return FileResponse(
             path=str(output_video_path),
             media_type="video/mp4",
-            filename=safe_filename,
+            filename=ascii_filename,
             headers={
                 "Access-Control-Expose-Headers": "Content-Disposition",
-                "Content-Disposition": f'attachment; filename="{safe_filename}"',
+                "Content-Disposition": content_disposition,
             },
         )
     except Exception as e:

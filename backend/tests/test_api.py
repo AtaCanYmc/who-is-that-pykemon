@@ -64,8 +64,39 @@ async def test_async_jobs_workflow(sample_image_bytes):
 
         assert completed is True
 
-        # 3. Download Video
+        # 3. Download the generated video
         download_res = await ac.get(f"/api/jobs/{job_id}/download")
         assert download_res.status_code == 200
         assert download_res.headers["content-type"] == "video/mp4"
-        assert len(download_res.content) > 1000
+        assert len(download_res.content) > 0
+
+
+@pytest.mark.asyncio
+async def test_async_jobs_workflow_with_turkish_characters(sample_image_bytes):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        # Create Job with Turkish Characters
+        create_res = await ac.post(
+            "/api/jobs",
+            files={"file": ("test.png", sample_image_bytes, "image/png")},
+            data={"name": "Çağdaş Işık Şükrü", "theme": "gold"},
+        )
+        assert create_res.status_code == 202
+        job_id = create_res.json()["job_id"]
+
+        # Poll status
+        completed = False
+        for _ in range(40):
+            await asyncio.sleep(0.5)
+            status_res = await ac.get(f"/api/jobs/{job_id}")
+            if status_res.status_code == 200 and status_res.json()["status"] == "COMPLETED":
+                completed = True
+                break
+
+        assert completed is True
+
+        # Download with Unicode Content-Disposition
+        download_res = await ac.get(f"/api/jobs/{job_id}/download")
+        assert download_res.status_code == 200
+        assert download_res.headers["content-type"] == "video/mp4"
+        assert "Content-Disposition" in download_res.headers

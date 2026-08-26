@@ -26,6 +26,22 @@ from app.config import (
 from app.utils.assets_init import ensure_assets
 
 
+def to_turkish_upper(text: str) -> str:
+    """Converts a string to uppercase with proper Turkish character casing."""
+    tr_map = {
+        "i": "İ",
+        "ı": "I",
+        "ğ": "Ğ",
+        "ü": "Ü",
+        "ş": "Ş",
+        "ö": "Ö",
+        "ç": "Ç",
+    }
+    for lower, upper in tr_map.items():
+        text = text.replace(lower, upper)
+    return text.upper()
+
+
 def render_reveal_text_layer(
     person_name: str,
     width: int = VIDEO_WIDTH,
@@ -51,7 +67,7 @@ def render_reveal_text_layer(
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    display_text = f"IT'S {person_name.upper()}!"
+    display_text = f"IT'S {to_turkish_upper(person_name)}!"
     font_size = 80
 
     font = None

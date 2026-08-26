@@ -17,6 +17,8 @@ ignore = [
     "E501",   # Line length handled by formatter
     "RUF012", # Mutable class attributes
     "UP042",  # StrEnum inheritance
+    "RUF001", # Ambiguous Unicode characters in strings (Turkish characters)
+    "RUF002", # Ambiguous Unicode characters in docstrings
     "RUF003", # Ambiguous characters in comments
 ]
 

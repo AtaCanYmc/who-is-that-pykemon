@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.1.0...v1.2.0) (2026-08-26)
+
+
+### Features
+
+* improve API URL handling and add backend connection error translations ([9d6a521](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/9d6a5211019968fdf6facc53d1084845ac5d8e96))
+
+
+### Bug Fixes
+
+* ensure husky script runs without failure during preparation ([bc84ece](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/bc84ece2a0f8464fdd36525a782776fbbccd0596))
+
 ## [1.1.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.0.0...v1.1.0) (2026-08-26)
 
 

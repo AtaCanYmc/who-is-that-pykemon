@@ -136,12 +136,22 @@ flowchart TD
 
 ---
 
-### 1. Docker Deployment (Recommended)
+### 1. Docker Deployment & GitHub Container Registry (GHCR)
 
-Run both backend and frontend in isolated containers with a single command:
+You can run the pre-built containers published directly to **GitHub Container Registry (`ghcr.io`)**:
 
 ```bash
-# Build and start all services
+# Pull & run the pre-built multi-arch backend container
+docker run -d -p 8000:8000 --name pykemon-backend ghcr.io/atacanymc/who-is-that-pykemon-backend:latest
+
+# Pull & run the pre-built frontend container
+docker run -d -p 3000:80 --name pykemon-frontend ghcr.io/atacanymc/who-is-that-pykemon-frontend:latest
+```
+
+Or build and run locally with Docker Compose:
+
+```bash
+# Build and start all services locally
 docker compose up --build -d
 
 # View real-time logs

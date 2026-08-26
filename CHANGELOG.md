@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.2.0...v1.3.0) (2026-08-26)
+
+
+### Features
+
+* add support for Turkish characters in Content-Disposition headers and implement related tests ([2f83912](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/2f83912dc762bc7cf68e7c9ed1564a0ad6d6a9bd))
+
 ## [1.2.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.1.0...v1.2.0) (2026-08-26)
 
 

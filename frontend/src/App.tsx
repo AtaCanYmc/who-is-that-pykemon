@@ -548,9 +548,13 @@ export default function App() {
                     type="text"
                     maxLength={30}
                     value={personName}
-                    onChange={(e) => setPersonName(e.target.value)}
+                    onChange={(e) =>
+                      setPersonName(
+                        e.target.value.toLocaleUpperCase(currentLang === 'tr' ? 'tr-TR' : undefined)
+                      )
+                    }
                     placeholder={t.namePlaceholder}
-                    className="w-full px-4 py-3.5 bg-slate-950/80 dark:bg-slate-950/80 light:bg-white border border-slate-700/80 dark:border-slate-700/80 light:border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-poke-yellow text-sm font-semibold text-slate-100 dark:text-slate-100 light:text-slate-900 placeholder-slate-500 transition-all shadow-inner"
+                    className="w-full px-4 py-3.5 bg-slate-950/80 dark:bg-slate-950/80 light:bg-white border border-slate-700/80 dark:border-slate-700/80 light:border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-poke-yellow text-sm font-semibold uppercase tracking-wide text-slate-100 dark:text-slate-100 light:text-slate-900 placeholder-slate-500 transition-all shadow-inner"
                   />
                 </div>
 

@@ -43,6 +43,7 @@ class JobRecord:
     job_id: str
     person_name: str
     theme: str
+    font_style: str = "solid"
     status: JobStatus = JobStatus.QUEUED
     progress: int = 5
     message: str = "Job queued..."
@@ -72,11 +73,20 @@ class JobManager:
         job.updated_at = time.time()
 
     async def create_job(
-        self, image_bytes: bytes, person_name: str, theme: str = "classic"
+        self,
+        image_bytes: bytes,
+        person_name: str,
+        theme: str = "classic",
+        font_style: str = "solid",
     ) -> JobRecord:
         """Registers a new video rendering job and launches the background processing worker."""
         job_id = uuid.uuid4().hex
-        job = JobRecord(job_id=job_id, person_name=person_name.strip() or "Pykemon", theme=theme)
+        job = JobRecord(
+            job_id=job_id,
+            person_name=person_name.strip() or "Pykemon",
+            theme=theme,
+            font_style=font_style,
+        )
 
         async with self._lock:
             self._jobs[job_id] = job
@@ -99,7 +109,7 @@ class JobManager:
 
         try:
             logger.info(
-                f"[Job {job_id}] Starting processing for '{job.person_name}' (Theme: {job.theme})..."
+                f"[Job {job_id}] Starting processing for '{job.person_name}' (Theme: {job.theme}, Font: {job.font_style})..."
             )
 
             # Step 1: Background removal
@@ -128,6 +138,7 @@ class JobManager:
                 job.person_name,
                 output_video_path,
                 job.theme,
+                job.font_style,
             )
 
             # Step 4: Completed

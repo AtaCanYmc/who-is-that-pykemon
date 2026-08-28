@@ -3,7 +3,7 @@ import { Type, Sparkles } from 'lucide-react';
 import { soundEffects } from '../utils/soundEffects';
 import { Translations } from '../i18n/translations';
 
-export type FontStyleId = 'arcade' | 'display' | 'sans';
+export type FontStyleId = 'solid' | 'hollow' | 'arcade' | 'sans';
 
 interface LiveBadgePreviewProps {
   personName: string;
@@ -23,7 +23,8 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
   const displayName = (personName.trim() || t.pykemon).toUpperCase();
 
   const fontOptions = [
-    { id: 'display' as FontStyleId, name: t.fontAnime, fontClass: 'font-display' },
+    { id: 'solid' as FontStyleId, name: t.fontSolid, fontClass: 'font-pokemon' },
+    { id: 'hollow' as FontStyleId, name: t.fontHollow, fontClass: 'font-hollow' },
     { id: 'arcade' as FontStyleId, name: t.fontArcade, fontClass: 'font-arcade' },
     { id: 'sans' as FontStyleId, name: t.fontModern, fontClass: 'font-sans' },
   ];
@@ -85,8 +86,10 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
           className={`text-lg sm:text-2xl tracking-wide font-black ${currentThemeStyle.textColor} ${currentThemeStyle.strokeClass} ${
             fontStyle === 'arcade'
               ? 'font-arcade text-xs sm:text-base leading-relaxed tracking-tighter'
-              : fontStyle === 'display'
-              ? 'font-display tracking-wider'
+              : fontStyle === 'hollow'
+              ? 'font-hollow tracking-wider'
+              : fontStyle === 'solid'
+              ? 'font-pokemon tracking-wider'
               : 'font-sans'
           } text-center break-all transition-all duration-200`}
         >
@@ -95,7 +98,7 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
       </div>
 
       {/* Font Style Switcher */}
-      <div className="grid grid-cols-3 gap-1.5 w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full">
         {fontOptions.map((style) => {
           const isSelected = fontStyle === style.id;
           return (
@@ -106,7 +109,7 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
                 soundEffects.playClickSound();
                 onSelectFontStyle(style.id);
               }}
-              className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all ${
+              className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
                 isSelected
                   ? 'bg-poke-yellow text-slate-950 border-poke-yellow shadow-md scale-[1.02]'
                   : 'bg-slate-900/80 dark:bg-slate-900/80 light:bg-slate-100 border-slate-800 dark:border-slate-800 light:border-slate-300 text-slate-400 dark:text-slate-400 light:text-slate-600 hover:text-white dark:hover:text-white light:hover:text-slate-950'

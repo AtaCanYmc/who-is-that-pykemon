@@ -47,6 +47,7 @@ def render_reveal_text_layer(
     width: int = VIDEO_WIDTH,
     height: int = VIDEO_HEIGHT,
     theme: str = "classic",
+    font_style: str = "solid",
 ) -> np.ndarray:
     """
     Renders the themed 'IT'S [NAME]!' badge overlay.
@@ -56,6 +57,7 @@ def render_reveal_text_layer(
         width (int, optional): Canvas width in pixels. Defaults to VIDEO_WIDTH.
         height (int, optional): Canvas height in pixels. Defaults to VIDEO_HEIGHT.
         theme (str, optional): Theme identifier ('classic', 'gold', 'neon'). Defaults to 'classic'.
+        font_style (str, optional): Font style ('solid', 'hollow', 'arcade', 'sans'). Defaults to 'solid'.
 
     Returns:
         np.ndarray: RGBA image array containing the formatted text overlay.
@@ -71,12 +73,22 @@ def render_reveal_text_layer(
     font_size = 80
 
     font = None
-    custom_font_files = list(FONTS_DIR.glob("*.ttf")) if FONTS_DIR.exists() else []
-    if custom_font_files:
+    target_font_filename = "pokemon_hollow.ttf" if font_style == "hollow" else "pokemon_solid.ttf"
+    target_font_path = FONTS_DIR / target_font_filename
+
+    if target_font_path.exists():
         try:
-            font = ImageFont.truetype(str(custom_font_files[0]), font_size)
+            font = ImageFont.truetype(str(target_font_path), font_size)
         except Exception:
             font = None
+
+    if font is None:
+        custom_font_files = list(FONTS_DIR.glob("*.ttf")) if FONTS_DIR.exists() else []
+        if custom_font_files:
+            try:
+                font = ImageFont.truetype(str(custom_font_files[0]), font_size)
+            except Exception:
+                font = None
 
     if font is None:
         system_fonts = [
@@ -119,6 +131,7 @@ def generate_reveal_video(
     person_name: str,
     output_path: Path,
     theme: str = "classic",
+    font_style: str = "solid",
 ) -> Path:
     """
     Generates a full 'Who is That Pykemon' reveal video with custom theme support.
@@ -129,6 +142,7 @@ def generate_reveal_video(
         person_name (str): Name or title to announce.
         output_path (Path): Destination path for the rendered MP4 file.
         theme (str, optional): Theme identifier ('classic', 'gold', 'neon'). Defaults to 'classic'.
+        font_style (str, optional): Font style ('solid', 'hollow', 'arcade', 'sans'). Defaults to 'solid'.
 
     Returns:
         Path: Path to the generated video file.

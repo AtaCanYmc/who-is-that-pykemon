@@ -126,6 +126,7 @@ async def create_video_job(
     file: UploadFile = File(..., description="Portrait image file"),
     name: str = Form("Someone", description="Subject name to announce"),
     theme: str = Form("classic", description="Theme identifier"),
+    font_style: str = Form("solid", description="Font style: solid, hollow, arcade, sans"),
 ) -> JobCreatedResponse:
     """
     Submits a video creation job to the asynchronous processing queue.
@@ -135,7 +136,12 @@ async def create_video_job(
     validate_uploaded_image(file, image_bytes)
 
     valid_theme = theme if theme in THEMES else "classic"
-    job = await job_manager.create_job(image_bytes=image_bytes, person_name=name, theme=valid_theme)
+    job = await job_manager.create_job(
+        image_bytes=image_bytes,
+        person_name=name,
+        theme=valid_theme,
+        font_style=font_style,
+    )
 
     return JobCreatedResponse(job_id=job.job_id, status=job.status.value, message=job.message)
 
@@ -231,6 +237,7 @@ async def generate_video_endpoint(
     file: UploadFile = File(..., description="Uploaded portrait photo"),
     name: str = Form("Someone", description="Name displayed during reveal"),
     theme: str = Form("classic", description="Theme identifier"),
+    font_style: str = Form("solid", description="Font style: solid, hollow, arcade, sans"),
 ) -> FileResponse:
     """
     Synchronously renders and streams a 'Who is That Pykemon' video.
@@ -254,6 +261,7 @@ async def generate_video_endpoint(
             person_name=clean_name,
             output_path=output_video_path,
             theme=valid_theme,
+            font_style=font_style,
         )
 
         background_tasks.add_task(remove_temp_file, str(output_video_path))

@@ -88,7 +88,7 @@ export default function App() {
   const [showCropper, setShowCropper] = useState<boolean>(false);
   const [selectedTheme, setSelectedTheme] = useState<string>('classic');
   const [personName, setPersonName] = useState<string>('');
-  const [fontStyle, setFontStyle] = useState<FontStyleId>('display');
+  const [fontStyle, setFontStyle] = useState<FontStyleId>('solid');
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // Async job state
@@ -215,6 +215,7 @@ export default function App() {
     formData.append('file', selectedFile);
     formData.append('name', personName.trim() || t.pykemon);
     formData.append('theme', selectedTheme);
+    formData.append('font_style', fontStyle);
 
     // Determine API Base URL smartly
     const getApiBaseUrl = (): string => {

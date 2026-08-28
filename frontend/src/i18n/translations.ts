@@ -39,6 +39,8 @@ export interface Translations {
 
   // Fonts
   fontAnime: string;
+  fontSolid: string;
+  fontHollow: string;
   fontArcade: string;
   fontModern: string;
 
@@ -122,7 +124,9 @@ export const translations: Record<Language, Translations> = {
     themeNeonTitle: 'Cyber Neon',
     themeNeonDesc: 'Fütüristik neon elektrik',
 
-    fontAnime: 'Anime Solid',
+    fontAnime: 'Pokémon Solid',
+    fontSolid: 'Pokémon Solid',
+    fontHollow: 'Pokémon Hollow',
     fontArcade: '8-Bit Arcade',
     fontModern: 'Modern Pro',
 
@@ -200,7 +204,9 @@ export const translations: Record<Language, Translations> = {
     themeNeonTitle: 'Cyber Neon',
     themeNeonDesc: 'Futuristic synthwave electric glow',
 
-    fontAnime: 'Anime Solid',
+    fontAnime: 'Pokémon Solid',
+    fontSolid: 'Pokémon Solid',
+    fontHollow: 'Pokémon Hollow',
     fontArcade: '8-Bit Arcade',
     fontModern: 'Modern Pro',
 
@@ -278,7 +284,9 @@ export const translations: Record<Language, Translations> = {
     themeNeonTitle: 'Cyber Néon',
     themeNeonDesc: 'Électrique synthwave futuriste',
 
-    fontAnime: 'Anime Solid',
+    fontAnime: 'Pokémon Plein',
+    fontSolid: 'Pokémon Plein',
+    fontHollow: 'Pokémon Contour',
     fontArcade: '8-Bit Arcade',
     fontModern: 'Moderne Pro',
 

@@ -18,6 +18,7 @@ export default {
       },
       fontFamily: {
         pokemon: ['PokemonSolid', 'Righteous', 'sans-serif'],
+        hollow: ['PokemonHollow', 'Righteous', 'sans-serif'],
         arcade: ['"Press Start 2P"', 'monospace'],
         display: ['Righteous', 'cursive', 'sans-serif'],
         sans: ['Outfit', 'system-ui', 'sans-serif'],

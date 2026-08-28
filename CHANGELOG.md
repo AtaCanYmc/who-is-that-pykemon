@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.3.0...v1.4.0) (2026-08-28)
+
+
+### Features
+
+* add font style options and update related components for badge rendering ([f9bde47](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/f9bde47efdd200768c85810e17ca0d02155fee47))
+* update input field to convert text to uppercase based on language ([31fa375](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/31fa375d38c2f0a0ab7a2b97b7d6e2c1754b3622))
+
 ## [1.3.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.2.0...v1.3.0) (2026-08-26)
 
 

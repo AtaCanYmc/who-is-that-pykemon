@@ -1,268 +1,246 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="Who is That Pykemon? Banner" width="100%" />
+  <img src="docs/images/banner.png" alt="Who is That Pykemon Banner" width="100%" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/Pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white" alt="Pytest" />
-  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License" />
+  <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/actions/workflows/ci.yml"><img src="https://github.com/AtaCanYmc/who-is-that-pykemon/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline Status" /></a>
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat" alt="MIT License" /></a>
 </p>
 
 <p align="center">
-  <a href="https://vercel.com/new/clone?repository-url=https://github.com/atacand/who-is-that-pykemon&env=VITE_API_URL&envDescription=Backend%20API%20URL%20for%20video%20generation">
+  <a href="https://vercel.com/new/clone?repository-url=https://github.com/AtaCanYmc/who-is-that-pykemon&env=VITE_API_URL&envDescription=Backend%20API%20URL%20for%20video%20generation">
     <img src="https://vercel.com/button" alt="Deploy with Vercel" />
   </a>
 </p>
 
-<h1 align="center">⚡️ WHO IS THAT PYKEMON? ⚡️</h1>
+Asynchronous video synthesis engine and Progressive Web App that generates Pokemon commercial transition reveal meme videos from portrait images using neural network background isolation, procedural audio composition, and MoviePy.
 
-<p align="center">
-  <strong>Transform your portrait photos into nostalgic, authentic <em>"Who's that Pokémon?"</em> reveal meme videos using AI background removal and video synthesis!</strong>
-</p>
+## Table of Contents
 
----
+- [System Architecture](#system-architecture)
+- [Quick Start (Docker)](#quick-start-docker)
+- [Technical Mechanics](#technical-mechanics)
+- [Local Development Setup](#local-development-setup)
+- [API Reference](#api-reference)
+- [Configuration](#configuration)
+- [Technical FAQ](#technical-faq)
+- [Testing & Verification](#testing--verification)
+- [Repository Structure](#repository-structure)
+- [Governance & Security](#governance--security)
 
-## 🏗️ Architecture & Project Structure
-
-```text
-who-is-that-pykemon/
-├── backend/                  # Python 3 & FastAPI & MoviePy & rembg
-│   ├── app/
-│   │   ├── main.py           # REST API endpoints & background cleanup tasks
-│   │   ├── config.py         # Global configuration & environment settings
-│   │   ├── services/
-│   │   │   ├── image_processor.py  # rembg background removal + pure black silhouette (#000000)
-│   │   │   └── video_generator.py  # MoviePy 9:16 vertical video composition & audio mixing
-│   │   └── utils/
-│   │       └── assets_init.py      # Procedural fallback Pokémon background & chiptune synthesizer
-│   ├── assets/               # Background images, sound effects, and custom fonts
-│   ├── requirements.txt      # Python dependencies
-│   └── tests/                # Pytest unit & integration test suite
-│
-├── frontend/                 # React 18 + Vite + TypeScript + Tailwind CSS + PWA
-│   ├── src/
-│   │   ├── App.tsx           # Photo upload/camera, name input, video player & Web Share
-│   │   ├── index.css         # Tailwind & custom Pokémon styling
-│   │   └── main.tsx          # Application entry point
-│   ├── public/               # PWA icons (Pokéball SVG) & manifest
-│   ├── vite.config.ts        # VitePWA configuration
-│   └── package.json          # Frontend dependencies
-│
-├── docs/
-│   └── images/               # README banner & visual assets
-├── .github/workflows/        # Automated GitHub Actions CI pipeline
-├── docker-compose.yml        # Multi-container orchestration
-├── .gitignore                # Git ignore configuration
-└── README.md                 # Project documentation
-```
-
----
-
-## 🔄 End-to-End Processing Workflow
+## System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Frontend["📱 Frontend (React / Vite PWA)"]
-        A["📸 Photo Upload / Camera"] --> B["📝 Name Input (Optional)"]
-        B --> C["🚀 Submit (POST /generate-video)"]
-        K["🎬 16:9 Video Player Preview"] --> L["⬇️ Download MP4 / 📲 Web Share"]
+    subgraph Frontend["Frontend (React 18 / Vite PWA)"]
+        UI_A["Photo Capture or Upload"] --> UI_B["Live SVG Badge Preview"]
+        UI_B --> UI_C["Submit Job (POST /api/jobs)"]
+        UI_C --> UI_D["Poll Job State (GET /api/jobs/:id)"]
+        UI_D --> UI_E["Preview Video Player"]
+        UI_E --> UI_F["Download MP4 or Web Share"]
     end
 
-    subgraph Backend["⚙️ Backend (FastAPI Engine)"]
-        C --> D["🔄 EXIF Auto-Transpose & Read Bytes"]
+    subgraph Backend["Backend (FastAPI Engine)"]
+        UI_C --> BE_A["Input Validator & MIME Check"]
+        BE_A --> BE_B["Asynchronous Job Queue"]
 
-        subgraph AIPipeline["🤖 AI Background Removal & Masking"]
-            D --> E["✂️ rembg (u2net ONNX Session)"]
-            E --> F["✨ Alpha Solidification (Hermite S-Curve)"]
-            F --> G["👤 Solid Jet-Black Silhouette (#000000)"]
-            F --> H["🎨 Crisp RGBA Full-Color Character"]
+        subgraph Pipeline["Inference & Video Pipeline"]
+            BE_B --> CV_A["rembg (u2net ONNX Session)"]
+            CV_A --> CV_B["Alpha Mask Solidification"]
+            CV_B --> CV_C["Jet-Black Silhouette (#000000)"]
+            CV_B --> CV_D["Full-Color RGBA Character"]
+            CV_C & CV_D --> MV_A["MoviePy Video Compositor"]
+            MV_B["Background & Audio Assets"] --> MV_A
+            MV_A --> MV_C["Render 1920x1080 24fps MP4"]
         end
 
-        subgraph VideoEngine["🎥 MoviePy Video Synthesis"]
-            I["🖼️ 16:9 Pokémon Background (background.png)"]
-            J["🎵 Audio Sync (whos_that_pokemon.mp3)"]
-            G --> M["⏱️ Stage 1 (0.0s - 3.3s): Silhouette + Teaser Music"]
-            H --> N["⏱️ Stage 2 (3.3s - 6.77s): Reveal + IT'S [NAME]!"]
-            I --> O["🎞️ CompositeVideoClip (1920x1080)"]
-            J --> O
-            M --> O
-            N --> O
-            O --> P["⚡ FFmpeg Render (libx264 / aac)"]
-        end
-
-        P --> Q["📦 FileResponse Streaming"]
-        Q --> R["🧹 BackgroundTask: Auto-delete Temp MP4"]
+        MV_C --> BE_C["Job Marked Complete"]
+        BE_C --> UI_D
+        UI_F --> BE_D["Stream MP4 (RFC 5987 Headers)"]
+        BE_D --> GC["Background GC Worker (15m Purge)"]
     end
-
-    Q --> K
-
-    style Frontend fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#f8fafc
-    style Backend fill:#0f172a,stroke:#eab308,stroke-width:2px,color:#f8fafc
-    style AIPipeline fill:#1e1b4b,stroke:#8b5cf6,stroke-width:1px,color:#f8fafc
-    style VideoEngine fill:#311010,stroke:#ef4444,stroke-width:1px,color:#f8fafc
 ```
 
----
+## Quick Start (Docker)
 
-## ✨ Features
-
-- **AI-Powered Background Removal:** Utilizes `rembg` (`u2net`) to isolate subjects while preserving hair and edge details.
-- **Pure Black Silhouette Conversion:** Converts isolated RGBA images to pure `#000000` silhouettes while strictly maintaining the original alpha channel.
-- **Synchronized Video & Audio Composition:**
-  - **Stage 1 (0.0s – 3.5s):** Mysterious black silhouette with teaser sound.
-  - **Stage 2 (3.5s – 7.0s):** Full-color reveal transition with custom Pokémon-styled *"IT'S [NAME]!"* badge and victory fanfare.
-  - **Format:** 1080x1920 (9:16 vertical format) H.264 / AAC MP4 video optimized for mobile playback (TikTok, Instagram Reels, YouTube Shorts).
-- **Progressive Web App (PWA):**
-  - Installable on iOS, Android, macOS, and Windows ("Add to Home Screen").
-  - Native Web Share API integration for direct video sharing to social media apps.
-  - One-click video download.
-- **Procedural Fallback Generator:** Automatically synthesizes standard Pokémon ray-burst backgrounds and 8-bit chiptune jingles if custom copyrighted assets are not provided.
-- **Comprehensive Testing & CI:** Pytest test suite and GitHub Actions CI workflow for backend, frontend, and Docker validation.
-
----
-
-## 🚀 Quickstart Guide
-
-### Prerequisites
-- Python 3.10+
-- Node.js 18+ & npm
-- FFmpeg installed on your system (`brew install ffmpeg` on macOS, or `apt install ffmpeg` on Ubuntu)
-
----
-
-### 1. Docker Deployment & GitHub Container Registry (GHCR)
-
-You can run the pre-built containers published directly to **GitHub Container Registry (`ghcr.io`)**:
+Launch the complete application stack including backend video synthesis and frontend PWA:
 
 ```bash
-# Pull & run the pre-built multi-arch backend container
-docker run -d -p 8000:8000 --name pykemon-backend ghcr.io/atacanymc/who-is-that-pykemon-backend:latest
+# 1. Clone the repository
+git clone https://github.com/AtaCanYmc/who-is-that-pykemon.git
+cd who-is-that-pykemon
 
-# Pull & run the pre-built frontend container
-docker run -d -p 3000:80 --name pykemon-frontend ghcr.io/atacanymc/who-is-that-pykemon-frontend:latest
-```
+# 2. Initialize environment configuration
+cp .env.example .env
 
-Or build and run locally with Docker Compose:
-
-```bash
-# Build and start all services locally
+# 3. Build and launch services in background
 docker compose up --build -d
 
-# View real-time logs
-docker compose logs -f
-
-# Stop services
-docker compose down
+# 4. Verify backend health
+curl -f http://localhost:8000/health
 ```
 
-- **Frontend Application (PWA):** `http://localhost:3000`
-- **Backend REST API:** `http://localhost:8000`
-- **API Docs (Swagger UI):** `http://localhost:8000/docs`
+Access the user interfaces:
+- Frontend PWA: `http://localhost:3000`
+- Backend REST API: `http://localhost:8000`
+- Interactive OpenAPI Docs: `http://localhost:8000/docs`
 
----
+## Technical Mechanics
 
-### 2. Deploy Frontend to Vercel
+### 1. Neural Subject Isolation & Silhouette Generation
+- The service processes portrait images using `rembg` backed by the `u2net` ONNX model.
+- An alpha channel transfer function solidifies subject boundaries to prevent semitransparent halos.
+- A secondary image processor derives a jet-black silhouette (`RGB: 0, 0, 0`) while preserving the exact alpha transparency mask of the isolated character.
 
-You can deploy the frontend PWA to Vercel in seconds:
+### 2. Timeline Video Composition (MoviePy)
+The output video is rendered at 1920x1080 resolution at 24 frames per second with H.264 video and AAC audio encoding:
+- **Stage 1 (0.0s to 3.3s)**: Jet-black silhouette displayed over rotating rayburst background accompanied by teaser music.
+- **Stage 2 (3.3s to 6.77s)**: Full-color character reveal accompanied by announcement text banner (*"IT'S [NAME]!"*) and victory fanfare.
+- Custom fonts (Solid, Hollow, Arcade, Sans) and theme palettes (Kanto Classic, Johto Gold, Cyber Neon) are rendered dynamically with dual stroke passes.
 
-1. Click the **Deploy with Vercel** button above or import the repository in [Vercel Dashboard](https://vercel.com/dashboard).
-2. Set the **Environment Variable**:
-   - `VITE_API_URL`: URL of your deployed backend (e.g. `https://your-backend-domain.com`).
-3. Click **Deploy**. Vercel will automatically use `vercel.json` to build the Vite PWA and configure caching & Service Worker headers.
+### 3. Asynchronous Job Queue & Temporary Storage
+- Video rendering is compute-intensive. To prevent HTTP connection timeouts, clients submit requests to `/api/jobs` and poll job status at 500ms intervals.
+- Temporary video files are tracked with unique identifiers in `TEMP_DIR`.
+- A background garbage collection thread scans `TEMP_DIR` every 5 minutes and deletes files older than 15 minutes.
 
----
+### 4. Internationalization & Character Sanitization
+- Filenames containing Turkish and international Unicode characters are encoded according to RFC 5987. Both ASCII fallbacks and UTF-8 encoded names are provided in the `Content-Disposition` header.
+- The frontend provides locale support for English and Turkish with uppercase normalization.
 
-### 3. Local Development Setup
+## Local Development Setup
 
-#### Backend Setup:
+### Prerequisites
+- Python 3.11 or later
+- Node.js 20 or later with npm
+- FFmpeg installed and available in `$PATH`
+
+### Backend Service
+
 ```bash
 cd backend
-
-# Create and activate a virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install dependencies
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# Run unit tests
-pytest tests/ -v
-
-# Start the FastAPI development server
 uvicorn app.main:app --reload --port 8000
 ```
 
-#### Frontend Setup (PWA):
+Refer to [backend/README.md](backend/README.md) for module details.
+
+### Frontend Application
+
 ```bash
 cd frontend
-
-# Install npm dependencies
-npm install
-
-# Start the Vite development server
+npm ci
 npm run dev
 ```
 
-- **Frontend Application:** `http://localhost:5173`
+Refer to [frontend/README.md](frontend/README.md) for UI architecture.
 
----
+## API Reference
 
-## 📡 API Reference
+### Core Endpoints
 
-### `POST /generate-video`
+| Method | Path | Description | Response |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/health` | Service health status and version | `{"status": "ok", ...}` |
+| `GET` | `/api/themes` | List of supported visual themes | Array of theme objects |
+| `POST` | `/api/jobs` | Submit video synthesis job | `HTTP 202` with `job_id` |
+| `GET` | `/api/jobs/{job_id}` | Poll processing state and progress | Job status object |
+| `GET` | `/api/jobs/{job_id}/download` | Download completed MP4 video | `video/mp4` stream |
+| `POST` | `/generate-video` | Synchronous legacy video generation | Direct `video/mp4` stream |
 
-Generates an MP4 reveal video from an uploaded portrait image and optional person name.
+### Job Creation Request
 
-#### Request (`multipart/form-data`):
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file` | File (`image/*`) | Yes | Portrait image file (PNG, JPEG, WEBP) |
-| `name` | string | No | Name to display during the reveal (Default: `Someone`) |
+```http
+POST /api/jobs HTTP/1.1
+Content-Type: multipart/form-data
 
-#### Response:
-- **Content-Type:** `video/mp4`
-- **Content-Disposition:** `attachment; filename="whos_that_[name].mp4"`
-
----
-
-## 🧪 Running Tests
-
-### Backend Unit Tests
-```bash
-cd backend
-pytest tests/ -v
+file: <binary image file (JPEG, PNG, WEBP, max 15MB)>
+name: "Bulbasaur"
+theme: "classic"
+font_style: "solid"
 ```
 
-### Frontend Typecheck & Build Test
+## Configuration
+
+Environment variables can be supplied via `.env` or system environment:
+
+| Variable | Target | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `TEMP_DIR` | Backend | `/tmp/who_is_that_pykemon` | Directory for intermediate renders and job outputs. |
+| `VITE_API_URL` | Frontend | `http://localhost:8000` | Target URL for backend API requests. |
+
+## Technical FAQ
+
+### How does the service operate if asset files are missing?
+The backend includes a procedural asset generator in `app/utils/assets_init.py`. If `background.png` or `whos_that_pokemon.mp3` are missing from `backend/assets/`, the service generates a geometric rayburst canvas and an 8-bit chiptune audio track using Pillow, NumPy, and SciPy.
+
+### Can video generation run completely offline?
+Yes. On initial execution, `rembg` downloads the `u2net.onnx` weights into the user cache directory (`~/.u2net/`). Subsequent executions run entirely offline with no external network calls.
+
+### What are the compute requirements for video rendering?
+Video synthesis runs on CPU using FFmpeg and ONNX Runtime. A dual-core modern CPU processes a 6.77-second video in approximately 2 to 5 seconds. Systems must have at least 2 GB of available RAM for image tensor transformations.
+
+### How does disk cleanup prevent storage exhaustion?
+The application initializes a background worker on startup. The worker executes every 5 minutes and unlinks files in `TEMP_DIR` with modification timestamps older than 900 seconds.
+
+## Testing & Verification
+
+Run automated test suites across subsystems:
+
 ```bash
-cd frontend
-npm test
-npm run build
+# Backend pytest suite with coverage
+pytest backend/tests/ -v --cov=backend/app
+
+# Frontend type checking and production build
+npm test --prefix frontend
+npm run build --prefix frontend
 ```
 
----
+## Repository Structure
 
-## 🛠️ Environment Variables & Customization
+```text
+who-is-that-pykemon/
+├── backend/                  # FastAPI video rendering service
+│   ├── app/                  # Application routes, services, and utilities
+│   ├── assets/               # Fonts, audio files, and background images
+│   ├── tests/                # Pytest unit and integration test suite
+│   ├── Dockerfile            # Multi-stage Python backend container
+│   ├── requirements.txt      # Python dependencies
+│   └── README.md             # Scoped backend documentation
+├── frontend/                 # React 18 TypeScript PWA
+│   ├── src/                  # Components, i18n translations, sound utilities
+│   ├── public/               # Static icons and PWA manifest
+│   ├── Dockerfile            # Multi-stage Nginx frontend container
+│   ├── package.json          # Node dependencies and scripts
+│   ├── vite.config.ts        # Vite and PWA configuration
+│   └── README.md             # Scoped frontend documentation
+├── docs/
+│   └── images/               # Documentation banner and diagrams
+├── .github/
+│   ├── workflows/            # GitHub Actions CI and release automation
+│   ├── ISSUE_TEMPLATE/       # Structured issue forms (bug report, feature request)
+│   ├── PULL_REQUEST_TEMPLATE/# Pull request verification checklist
+│   └── CODEOWNERS            # Pull request review routing
+├── .editorconfig             # Cross-editor formatting specifications
+├── .gitattributes            # Line ending normalization and asset tags
+├── .gitignore                # Git ignore rules
+├── .markdownlint.json        # Markdown linting configuration
+├── CONTRIBUTING.md           # Contribution workflow and commit conventions
+├── LICENSE                   # MIT open-source license
+├── ROADMAP.md                # Version milestones and technical roadmap
+├── SECURITY.md               # Vulnerability disclosure policies
+└── docker-compose.yml        # Multi-container orchestration definition
+```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VITE_API_URL` | Base URL of the FastAPI backend in Frontend | `http://localhost:8000` |
-| `TEMP_DIR` | Directory for temporary video rendering | `/tmp/who_is_that_pykemon` |
+## Governance & Security
 
-### Customizing Assets:
-You can replace the procedural assets by placing custom files into `backend/assets/`:
-- `backend/assets/background.png`: Custom 1080x1920 transition background.
-- `backend/assets/whos_that_pokemon.mp3`: Custom theme audio track.
-- `backend/assets/fonts/Pokemon-Solid.ttf`: Custom font file.
-
----
-
-## 📄 License
-
-MIT License. Created for meme, educational, and entertainment purposes.
+- **Contributing**: Review [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming and Conventional Commit specifications.
+- **Security**: Review [SECURITY.md](SECURITY.md) for vulnerability reporting channels and SLA commitments.
+- **Roadmap**: Review [ROADMAP.md](ROADMAP.md) for completed and planned milestones.
+- **License**: Released under the [MIT License](LICENSE).

@@ -1,72 +1,104 @@
-# Contributing to Who is That Pykemon ⚡️
+# Contributing to Who is That Pykemon
 
-Thank you for your interest in contributing to **Who is That Pykemon**! We welcome bug fixes, performance improvements, new features, and documentation enhancements.
+Contributions to Who is That Pykemon are welcome. Follow these guidelines to maintain code quality, test coverage, and clear commit history.
 
----
+## Table of Contents
 
-## 🛠️ Development Workflow
+- [Code of Conduct](#code-of-conduct)
+- [Development Setup](#development-setup)
+- [Branching Strategy](#branching-strategy)
+- [Commit Convention](#commit-convention)
+- [Testing Guidelines](#testing-guidelines)
+- [Pull Request Process](#pull-request-process)
 
-1. **Fork the repository** on GitHub.
-2. **Clone your fork** locally:
+## Code of Conduct
+
+All contributors must adhere to the [Code of Conduct](CODE_OF_CONDUCT.md). Treat participants with respect and keep discussions technical and constructive.
+
+## Development Setup
+
+### Prerequisites
+
+- Python 3.11 or later
+- Node.js 20 or later with npm
+- FFmpeg installed locally
+- Git
+
+### Backend Setup
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pytest tests/ -v
+```
+
+### Frontend Setup
+
+```bash
+cd frontend
+npm ci
+npm test
+npm run dev
+```
+
+## Branching Strategy
+
+1. Fork the repository on GitHub.
+2. Clone your fork locally:
    ```bash
    git clone https://github.com/<your-username>/who-is-that-pykemon.git
    cd who-is-that-pykemon
    ```
-3. **Create a topic branch**:
+3. Create a descriptive feature or bugfix branch from `main`:
    ```bash
-   git checkout -b feature/awesome-new-effect
+   git checkout -b feat/custom-theme-palette
    ```
-4. **Set up local development environments**:
-   - Backend:
-     ```bash
-     cd backend
-     python -m venv .venv
-     source .venv/bin/activate
-     pip install -r requirements.txt
-     ```
-   - Frontend:
-     ```bash
-     cd frontend
-     npm install
-     ```
 
----
+## Commit Convention
 
-## 🧪 Testing Guidelines
+All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-Before opening a pull request, ensure all tests pass:
+| Type | Purpose | Example |
+| :--- | :--- | :--- |
+| `feat` | New feature or user capability | `feat: add neon theme transition effect` |
+| `fix` | Bug fix | `fix: sanitize turkish characters in filename` |
+| `docs` | Documentation additions or corrections | `docs: add scoped backend readme` |
+| `test` | Adding or updating unit tests | `test: add job polling timeout test` |
+| `refactor` | Code restructuring without behavioral change | `refactor: extract silhouette generator into helper` |
+| `chore` | Dependency or tooling configuration | `chore: update vite build configuration` |
 
-### Backend Testing
+Husky and commitlint validate commit messages automatically on git commit.
+
+## Testing Guidelines
+
+Run verification commands before pushing commits:
+
 ```bash
-cd backend
-pytest tests/ -v
+# Run backend test suite with coverage
+pytest backend/tests/ -v --cov=backend/app
+
+# Run frontend typecheck and production build
+npm test --prefix frontend
+npm run build --prefix frontend
 ```
 
-### Frontend Testing & Build
+Verify that linters report no issues:
+
 ```bash
-cd frontend
-npm test
-npm run build
+# Ruff check and formatting
+./.venv/bin/ruff check backend
+./.venv/bin/ruff format --check backend
 ```
 
----
+## Pull Request Process
 
-## 🎨 Code Style & Standards
-
-- **Python**: Follow PEP 8 guidelines. Write clear English docstrings (PEP 257) for all new functions and classes.
-- **TypeScript / React**: Use strict TypeScript typing (`noImplicitAny`). Write modular components and clean Tailwind CSS classes.
-- **Git Commits**: Write clear, descriptive commit messages following the Conventional Commits specification (e.g., `feat: add lightning reveal effect`, `fix: handle transparent webp input`).
-
----
-
-## 🚀 Submitting a Pull Request
-
-1. Push your branch to GitHub:
+1. Push your branch to your GitHub fork:
    ```bash
-   git push origin feature/awesome-new-effect
+   git push origin feat/custom-theme-palette
    ```
 2. Open a Pull Request against the `main` branch.
-3. Fill out the provided Pull Request template describing the changes, motivation, and verification steps.
-4. Ensure all GitHub Actions CI checks pass.
-
-Thank you for making Who is That Pykemon better!
+3. Fill out the pull request template completely.
+4. Verify that all GitHub Actions CI checks pass.
+5. Address review feedback with atomic commits.

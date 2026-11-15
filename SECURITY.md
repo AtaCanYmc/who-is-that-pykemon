@@ -2,20 +2,34 @@
 
 ## Supported Versions
 
-The following versions of **Who is That Pykemon** are currently supported with security updates:
+The following versions of Who is That Pykemon receive active security updates:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-
----
+| Version | Supported |
+| :--- | :--- |
+| 1.4.x | Yes |
+| 1.3.x | Yes |
+| 1.2.x | No |
+| 1.1.x | No |
+| 1.0.x | No |
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within this project, please follow these steps:
+Please report suspected security vulnerabilities privately. Do not open public GitHub issues or discussions for security concerns.
 
-1. **Do not create a public issue** on GitHub.
-2. Email your findings directly to the repository maintainers or open a private GitHub Security Advisory.
-3. Include detailed steps to reproduce the issue, proof of concept, and any affected environment configurations.
+### Private Disclosure Channels
 
-We will acknowledge receipt of your vulnerability report within 48 hours and work on providing a patch promptly.
+- Submit a private advisory via [GitHub Security Advisories](https://github.com/AtaCanYmc/who-is-that-pykemon/security/advisories/new).
+- Email security reports directly to `atacanymc@gmail.com` with the subject prefix `[SECURITY] who-is-that-pykemon`.
+
+### Report Requirements
+
+Include the following technical details in your report:
+
+- Type of issue (e.g. arbitrary file write, unvalidated input, denial of service).
+- Step-by-step reproduction instructions or a minimal proof of concept script.
+- Affected component (`backend`, `frontend`, or Docker container orchestration).
+- Operating system and runtime versions used during reproduction.
+
+### Response SLA
+
+The maintainer will acknowledge receipt of your vulnerability report within 48 hours. A remediation plan or patch timeline will follow after initial assessment.

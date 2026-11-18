@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from app import __version__
 from app.config import (
     ALLOWED_ORIGINS,
     ASSETS_DIR,
@@ -41,7 +42,7 @@ logger = logging.getLogger("who-is-that-pykemon")
 app = FastAPI(
     title="Who is That Pykemon API",
     description="Asynchronous Task Queue & REST API for Pokémon Reveal Meme Video Generation",
-    version="1.1.0",
+    version=__version__,
 )
 
 # Configure Cross-Origin Resource Sharing (CORS) for PWA frontend access
@@ -114,7 +115,7 @@ def remove_temp_file(file_path: str) -> None:
 @app.get("/health")
 def health() -> dict:
     """Health check endpoint."""
-    return {"status": "ok", "app": "Who is That Pykemon", "version": "1.1.0"}
+    return {"status": "ok", "app": "Who is That Pykemon", "version": __version__}
 
 
 @app.get("/api/themes", response_model=list[ThemeItem])

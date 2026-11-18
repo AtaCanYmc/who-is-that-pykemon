@@ -79,6 +79,20 @@ build-frontend: ## Build frontend production PWA bundle
 	@npm run build --prefix frontend
 
 # ==============================================================================
+# Desktop App (Tauri)
+# ==============================================================================
+
+.PHONY: desktop-dev
+desktop-dev: ## Run desktop app in development mode with hot reloading
+	@echo "Starting Tauri desktop application in development mode..."
+	@npm run desktop:dev
+
+.PHONY: desktop-build
+desktop-build: ## Build release desktop application bundle
+	@echo "Building production desktop application bundle..."
+	@npm run desktop:build
+
+# ==============================================================================
 # Code Quality & Governance
 # ==============================================================================
 
@@ -127,7 +141,7 @@ docker-logs: ## Follow live logs from running containers
 .PHONY: clean
 clean: ## Remove temporary cache directories and build artifacts
 	@echo "Cleaning cache and build artifacts..."
-	@rm -rf .pytest_cache .ruff_cache backend/.pytest_cache frontend/dist frontend/node_modules/.vite /tmp/who_is_that_pykemon/*
+	@rm -rf .pytest_cache .ruff_cache backend/.pytest_cache frontend/dist frontend/node_modules/.vite src-tauri/target /tmp/who_is_that_pykemon/*
 	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	@echo "Clean completed."

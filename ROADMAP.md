@@ -31,6 +31,7 @@ This document outlines completed milestones and future technical development goa
 - Dynamic SVG live badge preview component with real-time text layout.
 - Expanded typography styling with custom font families.
 - Locale-aware uppercase text input conversion.
+- Cross-platform desktop application packaging with Tauri 2.
 
 ## Future Milestones
 

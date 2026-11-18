@@ -26,6 +26,7 @@ Asynchronous video synthesis engine and Progressive Web App that generates Pokem
 - [Quick Start (Docker)](#quick-start-docker)
 - [Technical Mechanics](#technical-mechanics)
 - [Local Development Setup](#local-development-setup)
+- [Desktop Application (Tauri)](#desktop-application-tauri)
 - [API Reference](#api-reference)
 - [Configuration](#configuration)
 - [Technical FAQ](#technical-faq)
@@ -141,6 +142,30 @@ npm run dev
 
 Refer to [frontend/README.md](frontend/README.md) for UI architecture.
 
+## Desktop Application (Tauri)
+
+The project includes a native cross-platform desktop wrapper built with Tauri 2 and Rust, packaging the React frontend for macOS, Windows, and Linux.
+
+### Desktop Prerequisites
+- Rust and Cargo (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
+- Platform-specific build tools (Xcode CLI tools on macOS, build-essential/webkit2gtk on Linux, Visual Studio C++ Build Tools on Windows)
+
+### Desktop Development & Packaging
+
+```bash
+# Run desktop app in development mode with hot reloading
+make desktop-dev
+# Alternatively via npm:
+npm run desktop:dev
+
+# Build production desktop installers (.app / .dmg on macOS, .msi / .exe on Windows, .deb / .AppImage on Linux)
+make desktop-build
+# Alternatively via npm:
+npm run desktop:build
+```
+
+Configuration and native window controls are defined in [src-tauri/tauri.conf.json](src-tauri/tauri.conf.json).
+
 ## API Reference
 
 ### Core Endpoints
@@ -220,6 +245,11 @@ who-is-that-pykemon/
 │   ├── package.json          # Node dependencies and scripts
 │   ├── vite.config.ts        # Vite and PWA configuration
 │   └── README.md             # Scoped frontend documentation
+├── src-tauri/                # Tauri 2 native desktop application wrapper
+│   ├── src/                  # Rust entry point (main.rs, lib.rs)
+│   ├── icons/                # Multi-platform app icons (macOS, Windows, Linux)
+│   ├── Cargo.toml            # Rust dependencies and package configuration
+│   └── tauri.conf.json       # Tauri window and build configuration
 ├── docs/
 │   └── images/               # Documentation banner and diagrams
 ├── scripts/                  # Governance, grounding, and anti-slop linters

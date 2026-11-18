@@ -335,7 +335,54 @@ body {
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
-  margin-block-end: 3rem;
+  margin-block-end: 1rem;
+}
+
+.hero-platform-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-block-end: 1.5rem;
+}
+
+.platform-pill-group {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.platform-pill-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding-inline: 0.65rem;
+  padding-block: 0.2rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.platform-pill-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--color-brand-blue);
+  border-color: var(--color-brand-blue);
+}
+
+.download-status-banner {
+  min-block-size: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-brand-blue);
+  text-align: center;
+  margin-block-end: 1.5rem;
+  transition: opacity 0.2s ease;
 }
 
 .hero-banner-figure {
@@ -667,6 +714,41 @@ body {
   color: #22c55e;
   font-weight: 700;
   margin-inline-end: 0.5rem;
+}
+
+.platform-downloads-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-block-end: 1.5rem;
+}
+
+.platform-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+}
+
+.platform-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.platform-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.platform-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 .download-actions {

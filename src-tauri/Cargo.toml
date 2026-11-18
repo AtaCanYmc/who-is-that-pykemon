@@ -1,12 +1,12 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+name = "who-is-that-pykemon"
+version = "1.4.0"
+description = "Who is That Pykemon desktop application"
+authors = ["AtaCanYmc"]
+license = "MIT"
+repository = "https://github.com/AtaCanYmc/who-is-that-pykemon"
 edition = "2024"
-rust-version = "1.90"
+rust-version = "1.85"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

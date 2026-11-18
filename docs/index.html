@@ -72,14 +72,14 @@
         </p>
 
         <div class="hero-cta-group">
-          <a href="#downloads" class="btn btn-primary btn-lg">
+          <button type="button" id="heroDownloadBtn" class="btn btn-primary btn-lg direct-download-btn" data-platform="auto">
             <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            <span>Get Desktop App</span>
-          </a>
+            <span id="heroDownloadText">Download Desktop App</span>
+          </button>
 
           <a href="#demo" class="btn btn-outline btn-lg">
             <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -92,6 +92,16 @@
             <span>Docker One-Liner</span>
           </a>
         </div>
+
+        <div class="hero-platform-selector">
+          <span class="platform-selector-label">Direct download:</span>
+          <div class="platform-pill-group">
+            <button type="button" class="platform-pill-btn" data-platform="macos">macOS (.dmg)</button>
+            <button type="button" class="platform-pill-btn" data-platform="windows">Windows (.exe)</button>
+            <button type="button" class="platform-pill-btn" data-platform="linux">Linux (.AppImage)</button>
+          </div>
+        </div>
+        <div id="heroDownloadStatus" class="download-status-banner" role="status" aria-live="polite"></div>
 
         <figure class="hero-banner-figure">
           <img 
@@ -307,21 +317,49 @@
         <div class="downloads-grid">
           <!-- Desktop App Card -->
           <div class="download-card featured-download">
-            <div class="download-badge">Recommended</div>
+            <div class="download-badge">Direct Download</div>
             <h3 class="download-title">Native Desktop App</h3>
             <p class="download-desc">
               Packaged with Tauri 2 and Rust for maximum local performance and native OS window integration.
             </p>
             
-            <ul class="download-specs">
-              <li>macOS: Apple Silicon & Intel (.dmg, .app)</li>
-              <li>Windows: 64-bit Installer (.msi, .exe)</li>
-              <li>Linux: AppImage & Debian package (.deb)</li>
-            </ul>
+            <div class="platform-downloads-list">
+              <div class="platform-row">
+                <div class="platform-info">
+                  <span class="platform-name">macOS</span>
+                  <span class="platform-meta">Universal (.dmg) · Apple Silicon & Intel</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm direct-download-btn" data-platform="macos">
+                  Download .dmg
+                </button>
+              </div>
+
+              <div class="platform-row">
+                <div class="platform-info">
+                  <span class="platform-name">Windows</span>
+                  <span class="platform-meta">64-bit Installer (.exe) · Windows 10/11</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm direct-download-btn" data-platform="windows">
+                  Download .exe
+                </button>
+              </div>
+
+              <div class="platform-row">
+                <div class="platform-info">
+                  <span class="platform-name">Linux</span>
+                  <span class="platform-meta">Standalone (.AppImage) · x86_64</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm direct-download-btn" data-platform="linux">
+                  Download .AppImage
+                </button>
+              </div>
+            </div>
+
+            <div id="downloadsStatusMsg" class="download-status-banner" role="status" aria-live="polite"></div>
 
             <div class="download-actions">
-              <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/releases" class="btn btn-primary btn-block" target="_blank" rel="noopener noreferrer">
-                <span>View GitHub Releases</span>
+              <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/releases" class="btn btn-secondary btn-block" target="_blank" rel="noopener noreferrer">
+                <span>View All Releases on GitHub</span>
               </a>
               <div class="source-hint">
                 Or build locally: <code>make desktop-build</code>

@@ -9,7 +9,9 @@
       "include-component-in-tag": false,
       "extra-files": [
         "backend/app/__init__.py",
-        "frontend/package.json"
+        "frontend/package.json",
+        "src-tauri/tauri.conf.json",
+        "src-tauri/Cargo.toml"
       ]
     }
   }

@@ -1,10 +1,11 @@
 /**
  * Who is That Pykemon? — Promotional Site Interactive Scripts
- * Lightweight vanilla JavaScript: interactive stage preview, Web Audio fanfare, and clipboard copy.
+ * Lightweight vanilla JavaScript: interactive stage preview, Web Audio fanfare,
+ * OS platform detection, and direct compiled desktop app download handling.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // DOM Elements
+  // DOM Elements - Stage Preview
   const previewCanvasContainer = document.getElementById('previewCanvasContainer');
   const rayburstBg = document.getElementById('rayburstBg');
   const characterSilhouette = document.getElementById('characterSilhouette');
@@ -17,12 +18,156 @@ document.addEventListener('DOMContentLoaded', () => {
   const badgeTitle = document.getElementById('badgeTitle');
   const stageTag = document.getElementById('stageTag');
   const playAudioBtn = document.getElementById('playAudioBtn');
+
+  // DOM Elements - Terminal & Downloads
   const copyCodeBtn = document.getElementById('copyCodeBtn');
   const copyBtnText = document.getElementById('copyBtnText');
   const terminalCode = document.getElementById('terminalCode');
+  const heroDownloadBtn = document.getElementById('heroDownloadBtn');
+  const heroDownloadText = document.getElementById('heroDownloadText');
+  const heroDownloadStatus = document.getElementById('heroDownloadStatus');
+  const downloadsStatusMsg = document.getElementById('downloadsStatusMsg');
 
   // State
   let isRevealPhase = false;
+  let cachedRelease = null;
+  let isFetchingRelease = false;
+
+  // Platform Definitions
+  const platformConfig = {
+    macos: {
+      name: 'macOS',
+      ext: '.dmg',
+      label: 'Download for macOS (.dmg)',
+      pattern: /\.(dmg|app\.tar\.gz)$/i,
+      directUrl: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest/download/Who-is-That-Pykemon.dmg'
+    },
+    windows: {
+      name: 'Windows',
+      ext: '.exe',
+      label: 'Download for Windows (.exe)',
+      pattern: /\.(exe|msi)$/i,
+      directUrl: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest/download/Who-is-That-Pykemon-setup.exe'
+    },
+    linux: {
+      name: 'Linux',
+      ext: '.AppImage',
+      label: 'Download for Linux (.AppImage)',
+      pattern: /\.(AppImage|deb)$/i,
+      directUrl: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest/download/Who-is-That-Pykemon.AppImage'
+    }
+  };
+
+  // Detect User Operating System
+  function detectPlatform() {
+    const userAgent = (navigator.userAgent || '').toLowerCase();
+    const platform = (navigator.platform || '').toLowerCase();
+    if (platform.includes('mac') || userAgent.includes('macintosh') || userAgent.includes('mac os')) {
+      return 'macos';
+    }
+    if (platform.includes('win') || userAgent.includes('windows')) {
+      return 'windows';
+    }
+    if (platform.includes('linux') || userAgent.includes('linux')) {
+      return 'linux';
+    }
+    return 'macos'; // fallback
+  }
+
+  const userPlatform = detectPlatform();
+
+  // Initialize Hero Download Button Label
+  if (heroDownloadText && platformConfig[userPlatform]) {
+    heroDownloadText.textContent = platformConfig[userPlatform].label;
+  }
+
+  // Update Status Banner Helper
+  function showStatus(message, isError = false) {
+    [heroDownloadStatus, downloadsStatusMsg].forEach((el) => {
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = isError ? 'var(--color-brand-red)' : 'var(--color-brand-blue)';
+      el.style.opacity = '1';
+    });
+  }
+
+  // Fetch Latest GitHub Release Info
+  async function getLatestRelease() {
+    if (cachedRelease) return cachedRelease;
+    if (isFetchingRelease) return null;
+    isFetchingRelease = true;
+    try {
+      const res = await fetch('https://api.github.com/repos/AtaCanYmc/who-is-that-pykemon/releases/latest');
+      if (!res.ok) {
+        // If 404 (no releases published yet), try all releases list
+        const allRes = await fetch('https://api.github.com/repos/AtaCanYmc/who-is-that-pykemon/releases');
+        if (allRes.ok) {
+          const list = await allRes.json();
+          if (Array.isArray(list) && list.length > 0) {
+            cachedRelease = list[0];
+            return cachedRelease;
+          }
+        }
+        return null;
+      }
+      cachedRelease = await res.json();
+      return cachedRelease;
+    } catch {
+      return null;
+    } finally {
+      isFetchingRelease = false;
+    }
+  }
+
+  // Direct Binary Download Trigger
+  async function triggerDirectDownload(targetPlatformKey) {
+    const targetKey = targetPlatformKey === 'auto' ? userPlatform : targetPlatformKey;
+    const config = platformConfig[targetKey] || platformConfig.macos;
+
+    showStatus(`Looking up latest release for ${config.name}...`);
+
+    try {
+      const release = await getLatestRelease();
+      let downloadUrl = null;
+      let filename = null;
+
+      if (release && Array.isArray(release.assets) && release.assets.length > 0) {
+        const matchingAsset = release.assets.find((asset) => config.pattern.test(asset.name));
+        if (matchingAsset) {
+          downloadUrl = matchingAsset.browser_download_url;
+          filename = matchingAsset.name;
+        }
+      }
+
+      // If release asset found, download directly
+      if (downloadUrl) {
+        showStatus(`Downloading ${filename || config.name}...`);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename || `Who-is-That-Pykemon${config.ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => showStatus(`Download started: ${filename}`), 1000);
+      } else {
+        // Fallback: direct to GitHub releases page where compiled assets are published
+        showStatus(`Opening GitHub Releases for ${config.name} installer...`);
+        window.open('https://github.com/AtaCanYmc/who-is-that-pykemon/releases', '_blank', 'noopener,noreferrer');
+      }
+    } catch {
+      showStatus(`Opening GitHub Releases page...`);
+      window.open('https://github.com/AtaCanYmc/who-is-that-pykemon/releases', '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  // Wire Download Buttons
+  document.querySelectorAll('.direct-download-btn, .platform-pill-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const platformKey = btn.getAttribute('data-platform') || 'auto';
+      triggerDirectDownload(platformKey);
+    });
+  });
 
   // Themes Map
   const themes = {
@@ -49,19 +194,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // Update Theme
   function applyTheme(themeKey) {
     const theme = themes[themeKey] || themes.classic;
-    rayburstBg.style.background = `repeating-conic-gradient(from 0deg, ${theme.color1} 0deg 15deg, ${theme.color2} 15deg 30deg)`;
-    stageBadge.style.borderColor = theme.badgeBorder;
-    stageBadge.style.backgroundColor = theme.badgeBg;
+    if (rayburstBg) {
+      rayburstBg.style.background = `repeating-conic-gradient(from 0deg, ${theme.color1} 0deg 15deg, ${theme.color2} 15deg 30deg)`;
+    }
+    if (stageBadge) {
+      stageBadge.style.borderColor = theme.badgeBorder;
+      stageBadge.style.backgroundColor = theme.badgeBg;
+    }
   }
 
   // Update Badge Title
   function updateBadgeText() {
+    if (!nameInput || !badgeTitle) return;
     const rawVal = nameInput.value.trim().toUpperCase() || 'PYKEMON';
     badgeTitle.textContent = isRevealPhase ? `IT'S ${rawVal}!` : `???`;
   }
 
   // Update Font Style
   function updateFontStyle(fontKey) {
+    if (!badgeTitle) return;
     if (fontKey === 'solid') {
       badgeTitle.style.fontFamily = "'Pokemon Solid', var(--font-sans)";
     } else if (fontKey === 'hollow') {
@@ -74,6 +225,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Toggle Reveal / Silhouette Phase
   function setPhase(reveal) {
     isRevealPhase = reveal;
+    if (!characterSilhouette || !stageTag || !togglePhaseText) return;
+
     if (isRevealPhase) {
       characterSilhouette.classList.remove('is-silhouette');
       characterSilhouette.classList.add('is-reveal');
@@ -102,7 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const now = audioCtx.currentTime;
-      // 8-bit fanfare frequencies (Hz) & durations
       const notes = [
         { f: 523.25, d: 0.12 }, // C5
         { f: 659.25, d: 0.12 }, // E5
@@ -134,27 +286,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Event Listeners
-  nameInput.addEventListener('input', () => {
-    nameInput.value = nameInput.value.toUpperCase();
-    updateBadgeText();
-  });
+  // Event Listeners - Stage Controls
+  if (nameInput) {
+    nameInput.addEventListener('input', () => {
+      nameInput.value = nameInput.value.toUpperCase();
+      updateBadgeText();
+    });
+  }
 
-  themeSelect.addEventListener('change', (e) => {
-    applyTheme(e.target.value);
-  });
+  if (themeSelect) {
+    themeSelect.addEventListener('change', (e) => {
+      applyTheme(e.target.value);
+    });
+  }
 
-  fontSelect.addEventListener('change', (e) => {
-    updateFontStyle(e.target.value);
-  });
+  if (fontSelect) {
+    fontSelect.addEventListener('change', (e) => {
+      updateFontStyle(e.target.value);
+    });
+  }
 
-  togglePhaseBtn.addEventListener('click', () => {
-    setPhase(!isRevealPhase);
-  });
+  if (togglePhaseBtn) {
+    togglePhaseBtn.addEventListener('click', () => {
+      setPhase(!isRevealPhase);
+    });
+  }
 
-  playAudioBtn.addEventListener('click', () => {
-    playChiptuneJingle();
-  });
+  if (playAudioBtn) {
+    playAudioBtn.addEventListener('click', () => {
+      playChiptuneJingle();
+    });
+  }
 
   // Terminal Code Copy Button
   if (copyCodeBtn && terminalCode) {
@@ -176,6 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial Setup
   setPhase(false);
-  applyTheme(themeSelect.value);
-  updateFontStyle(fontSelect.value);
+  if (themeSelect) applyTheme(themeSelect.value);
+  if (fontSelect) updateFontStyle(fontSelect.value);
 });

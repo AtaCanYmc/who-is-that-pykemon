@@ -1,0 +1,79 @@
+name: Well Document Governance Gate
+
+on:
+  workflow_call:
+    inputs:
+      check_governance:
+        description: "Verify essential governance files"
+        required: false
+        type: boolean
+        default: true
+      check_slop:
+        description: "Enforce anti-AI-slop rules"
+        required: false
+        type: boolean
+        default: true
+      check_links:
+        description: "Validate internal markdown relative links"
+        required: false
+        type: boolean
+        default: true
+      readme_path:
+        description: "Path to root README file"
+        required: false
+        type: string
+        default: "README.md"
+
+jobs:
+  gate:
+    name: Anti-Slop & Governance Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Verify Essential Governance Files
+        if: ${{ inputs.check_governance }}
+        run: |
+          for f in "${{ inputs.readme_path }}" LICENSE CONTRIBUTING.md SECURITY.md ROADMAP.md; do
+            if [ ! -f "$f" ]; then
+              echo "::error file=$f::Missing required governance file: $f"
+              exit 1
+            fi
+          done
+
+      - name: Run Anti-AI-Slop Linter
+        if: ${{ inputs.check_slop }}
+        run: |
+          README_FILE="${{ inputs.readme_path }}"
+          FORBIDDEN="seamlessly|blazingly fast|cutting-edge|revolutionary|comprehensive and robust|effortlessly"
+          SLOP_MATCHES=$(grep -E -i "$FORBIDDEN" "$README_FILE" | grep -v -E "Strips meaningless|Zero Buzzword" || true)
+          if [ -n "$SLOP_MATCHES" ]; then
+            echo "::error file=$README_FILE::Forbidden marketing buzzwords found in documentation"
+            exit 1
+          fi
+          if grep -q "—" "$README_FILE"; then
+            echo "::error file=$README_FILE::Forbidden long dash (em-dash) detected"
+            exit 1
+          fi
+
+      - name: Validate Codebase Grounding & Links
+        if: ${{ inputs.check_links }}
+        run: |
+          python3 -c '
+          import re, glob, os, sys
+          broken = []
+          for f in glob.glob("**/*.md", recursive=True):
+              if "node_modules" in f: continue
+              content = re.sub(r"```[\s\S]*?```", "", open(f, encoding="utf-8").read())
+              content = re.sub(r"`[^`]*`", "", content)
+              for link in re.findall(r"\[.*?\]\((?!https?://|mailto:)(.*?)(?:#.*)?\)", content):
+                  link = link.strip().split("?")[0]
+                  if not link or link.startswith("#"): continue
+                  target = os.path.normpath(os.path.join(os.path.dirname(f), link))
+                  if not os.path.exists(target):
+                      broken.append(f"{f} -> {link}")
+          if broken:
+              print("Broken links detected:", broken, file=sys.stderr)
+              sys.exit(1)
+          '

@@ -109,7 +109,7 @@ Returns HTTP 202 with `job_id`:
 GET /api/jobs/{job_id}
 ```
 
-Returns processing state and progress percentage (0–100). When `status == "completed"`, provides `download_url`.
+Returns processing state and progress percentage (0 to 100). When `status == "completed"`, provides `download_url`.
 
 ### Download Rendered Video
 

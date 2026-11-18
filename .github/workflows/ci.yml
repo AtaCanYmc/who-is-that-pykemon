@@ -26,6 +26,23 @@ jobs:
             test -f "$f" || (echo "Missing $f" && exit 1)
           done
 
+      - name: Run Anti-AI-Slop Linter
+        run: |
+          FORBIDDEN="seamlessly|blazingly fast|cutting-edge|revolutionary|comprehensive and robust|effortlessly"
+          for f in README.md backend/README.md frontend/README.md CONTRIBUTING.md SECURITY.md ROADMAP.md; do
+            if [ -f "$f" ]; then
+              SLOP_MATCHES=$(grep -E -i "$FORBIDDEN" "$f" | grep -v -E "Strips meaningless|Zero Buzzword" || true)
+              if [ -n "$SLOP_MATCHES" ]; then
+                echo "::error file=$f::Forbidden marketing buzzwords found in documentation"
+                exit 1
+              fi
+              if grep -q "—" "$f"; then
+                echo "::error file=$f::Forbidden long dash (em-dash) detected"
+                exit 1
+              fi
+            fi
+          done
+
       - name: Validate Internal Documentation Links
         run: |
           python3 -c '

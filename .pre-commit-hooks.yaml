@@ -1,0 +1,15 @@
+- id: well-document-grounding
+  name: Verify Codebase Grounding
+  description: Verifies that relative links and file paths in staged markdown files physically exist on disk.
+  entry: scripts/verify-grounding.py
+  language: python
+  types: [markdown]
+  pass_filenames: true
+
+- id: well-document-anti-slop
+  name: Anti-AI-Slop Linter
+  description: Scans staged documentation for forbidden marketing buzzwords, em-dashes, and unapproved emojis.
+  entry: scripts/verify-anti-slop.py
+  language: python
+  types: [markdown]
+  pass_filenames: true

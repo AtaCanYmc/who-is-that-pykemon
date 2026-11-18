@@ -222,15 +222,19 @@ who-is-that-pykemon/
 │   └── README.md             # Scoped frontend documentation
 ├── docs/
 │   └── images/               # Documentation banner and diagrams
+├── scripts/                  # Governance, grounding, and anti-slop linters
 ├── .github/
-│   ├── workflows/            # GitHub Actions CI and release automation
+│   ├── workflows/            # GitHub Actions CI, release, and governance automation
 │   ├── ISSUE_TEMPLATE/       # Structured issue forms (bug report, feature request)
 │   ├── PULL_REQUEST_TEMPLATE/# Pull request verification checklist
 │   └── CODEOWNERS            # Pull request review routing
 ├── .editorconfig             # Cross-editor formatting specifications
+├── .env.example              # Sample environment configuration template
 ├── .gitattributes            # Line ending normalization and asset tags
 ├── .gitignore                # Git ignore rules
 ├── .markdownlint.json        # Markdown linting configuration
+├── .pre-commit-config.yaml   # Pre-commit git hook configuration
+├── .pre-commit-hooks.yaml    # Reusable pre-commit hook definitions
 ├── CONTRIBUTING.md           # Contribution workflow and commit conventions
 ├── LICENSE                   # MIT open-source license
 ├── ROADMAP.md                # Version milestones and technical roadmap

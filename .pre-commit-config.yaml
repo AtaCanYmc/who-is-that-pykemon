@@ -21,3 +21,19 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: verify-grounding
+        name: Verify Codebase Grounding
+        entry: python3 scripts/verify-grounding.py
+        language: system
+        types: [markdown]
+        pass_filenames: true
+
+      - id: verify-anti-slop
+        name: Anti-AI-Slop Linter
+        entry: python3 scripts/verify-anti-slop.py
+        language: system
+        types: [markdown]
+        pass_filenames: true

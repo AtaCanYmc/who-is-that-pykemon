@@ -147,6 +147,10 @@ Refer to [frontend/README.md](frontend/README.md) for UI architecture.
 
 The project includes a native cross-platform desktop wrapper built with Tauri 2 and Rust, packaging the React frontend for macOS, Windows, and Linux.
 
+<p align="center">
+  <img src="docs/images/desktop-preview.png" alt="Who is That Pykemon Native Desktop Application Interface" width="90%" />
+</p>
+
 ### Desktop Prerequisites
 - Rust and Cargo (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
 - Platform-specific build tools (Xcode CLI tools on macOS, build-essential/webkit2gtk on Linux, Visual Studio C++ Build Tools on Windows)

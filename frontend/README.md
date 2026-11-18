@@ -4,6 +4,10 @@
 
 Progressive Web Application built with React 18, TypeScript, Vite, and Tailwind CSS. Provides client-side image capture, live SVG badge previews, audio effects via the Web Audio API, internationalization, and video sharing through the Web Share API.
 
+<p align="center">
+  <img src="../docs/images/desktop-preview.png" alt="Who is That Pykemon Frontend Interface" width="90%" />
+</p>
+
 ## Table of Contents
 
 - [Architecture](#architecture)

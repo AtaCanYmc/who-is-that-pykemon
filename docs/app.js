@@ -1,5 +1,5 @@
 /**
- * Who is That Pykemon? — Promotional Site Interactive Scripts
+ * Who is That Pykemon? - Promotional Site Interactive Scripts
  * Lightweight vanilla JavaScript: interactive stage preview, Web Audio fanfare,
  * OS platform detection, and direct compiled desktop app download handling.
  */
@@ -30,10 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State
   let isRevealPhase = false;
-  let cachedRelease = null;
-  let isFetchingRelease = false;
 
-  // Platform Definitions
+  // Platform Definitions with direct release download URLs
   const platformConfig = {
     macos: {
       name: 'macOS',
@@ -44,14 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
     windows: {
       name: 'Windows',
       label: 'Download for Windows (.exe)',
-      href: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest',
-      target: '_blank'
+      href: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest/download/Who_is_That_Pykemon_1.5.0_x64-setup.exe',
+      download: 'Who_is_That_Pykemon_1.5.0_x64-setup.exe'
     },
     linux: {
       name: 'Linux',
       label: 'Download for Linux (.AppImage)',
-      href: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest',
-      target: '_blank'
+      href: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest/download/who-is-that-pykemon_1.5.0_amd64.AppImage',
+      download: 'who-is-that-pykemon_1.5.0_amd64.AppImage'
     }
   };
 
@@ -73,13 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const userPlatform = detectPlatform();
 
-  // Configure Hero Download Button Based on Detected OS
-  if (heroDownloadBtn && heroDownloadText) {
-    const activeConfig = platformConfig[userPlatform] || platformConfig.macos;
-    heroDownloadText.textContent = activeConfig.label;
-    heroDownloadBtn.href = activeConfig.href;
-    if (activeConfig.download) {
-      heroDownloadBtn.setAttribute('download', activeConfig.download);
+  function applyHeroConfig(config) {
+    if (!heroDownloadBtn || !heroDownloadText) return;
+    heroDownloadText.textContent = config.label;
+    heroDownloadBtn.href = config.href;
+    if (config.download) {
+      heroDownloadBtn.setAttribute('download', config.download);
       heroDownloadBtn.removeAttribute('target');
       heroDownloadBtn.removeAttribute('rel');
     } else {
@@ -88,6 +85,75 @@ document.addEventListener('DOMContentLoaded', () => {
       heroDownloadBtn.setAttribute('rel', 'noopener noreferrer');
     }
   }
+
+  function updatePlatformLinks(platform, url, filename, metaText) {
+    const selectorPills = document.querySelectorAll(`.platform-pill-btn[data-platform="${platform}"]`);
+    selectorPills.forEach((el) => {
+      el.href = url;
+      if (filename) el.setAttribute('download', filename);
+    });
+
+    const listLinks = document.querySelectorAll(`.platform-downloads-list a[data-platform="${platform}"]`);
+    listLinks.forEach((el) => {
+      el.href = url;
+      if (filename) el.setAttribute('download', filename);
+    });
+
+    if (metaText) {
+      const metaEl = document.querySelector(`.platform-meta[data-meta="${platform}"]`);
+      if (metaEl) {
+        metaEl.textContent = metaText;
+      }
+    }
+  }
+
+  // Initial Hero Download Button setup
+  applyHeroConfig(platformConfig[userPlatform] || platformConfig.macos);
+
+  // Fetch GitHub Releases API dynamically to populate live assets and sizes
+  async function resolveLatestReleaseAssets() {
+    try {
+      const response = await fetch('https://api.github.com/repos/AtaCanYmc/who-is-that-pykemon/releases/latest');
+      if (!response.ok) return;
+      const release = await response.json();
+      const assets = release.assets || [];
+      if (!assets.length) return;
+
+      const winAsset = assets.find((a) => a.name.endsWith('.exe') || a.name.endsWith('.msi'));
+      if (winAsset) {
+        const sizeMb = (winAsset.size / (1024 * 1024)).toFixed(1);
+        platformConfig.windows.href = winAsset.browser_download_url;
+        platformConfig.windows.download = winAsset.name;
+        platformConfig.windows.label = `Download for Windows (.exe) · ${sizeMb} MB`;
+        updatePlatformLinks('windows', winAsset.browser_download_url, winAsset.name, `64-bit Installer (.exe) · ${sizeMb} MB · Windows 10/11`);
+      }
+
+      const linuxAsset = assets.find((a) => a.name.endsWith('.AppImage') || a.name.endsWith('.deb'));
+      if (linuxAsset) {
+        const sizeMb = (linuxAsset.size / (1024 * 1024)).toFixed(1);
+        platformConfig.linux.href = linuxAsset.browser_download_url;
+        platformConfig.linux.download = linuxAsset.name;
+        platformConfig.linux.label = `Download for Linux (.AppImage) · ${sizeMb} MB`;
+        updatePlatformLinks('linux', linuxAsset.browser_download_url, linuxAsset.name, `Standalone (.AppImage) · ${sizeMb} MB · x86_64`);
+      }
+
+      const macAsset = assets.find((a) => a.name.endsWith('.dmg'));
+      if (macAsset) {
+        const sizeMb = (macAsset.size / (1024 * 1024)).toFixed(1);
+        platformConfig.macos.href = macAsset.browser_download_url;
+        platformConfig.macos.download = macAsset.name;
+        platformConfig.macos.label = `Download for macOS (.dmg) · ${sizeMb} MB`;
+        updatePlatformLinks('macos', macAsset.browser_download_url, macAsset.name, `Universal (.dmg) · ${sizeMb} MB · Apple Silicon & Intel`);
+      }
+
+      // Re-apply hero button for detected platform with dynamic sizes & URLs
+      applyHeroConfig(platformConfig[userPlatform] || platformConfig.macos);
+    } catch {
+      // Gracefully maintain static direct download URLs
+    }
+  }
+
+  resolveLatestReleaseAssets();
 
   // Themes Map
   const themes = {

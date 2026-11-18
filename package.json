@@ -7,6 +7,7 @@
     "prepare": "husky || true",
     "test:frontend": "npm test --prefix frontend",
     "build:frontend": "npm run build --prefix frontend",
+    "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build"
   },

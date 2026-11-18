@@ -53,3 +53,23 @@ def test_validate_oversized_file():
     with pytest.raises(HTTPException) as exc:
         validate_uploaded_image(mock_file, large_bytes)
     assert exc.value.status_code == 413
+
+
+def test_validate_oversized_dimensions():
+    from PIL import Image
+
+    # Create image with width exceeding limit
+    img = Image.new("RGB", (5000, 100), color="blue")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    oversized_bytes = buf.getvalue()
+
+    mock_file = UploadFile(
+        file=io.BytesIO(oversized_bytes),
+        filename="huge.png",
+        headers={"content-type": "image/png"},
+    )
+    with pytest.raises(HTTPException) as exc:
+        validate_uploaded_image(mock_file, oversized_bytes)
+    assert exc.value.status_code == 400
+    assert "exceed maximum allowed limit" in exc.value.detail

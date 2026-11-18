@@ -31,6 +31,16 @@ RUN python -c "from rembg import new_session; new_session('u2net')"
 # Copy backend application code & assets
 COPY . .
 
+# Create non-root user and ensure proper permissions
+RUN groupadd -r appuser && useradd -r -g appuser -d /home/appuser -m appuser && \
+    mkdir -p /home/appuser/.u2net /tmp/who_is_that_pykemon && \
+    cp -r /root/.u2net/* /home/appuser/.u2net/ 2>/dev/null || true && \
+    chown -R appuser:appuser /home/appuser /app /tmp/who_is_that_pykemon
+
+ENV U2NET_HOME=/home/appuser/.u2net
+
+USER appuser
+
 # Expose port
 EXPOSE 8000
 

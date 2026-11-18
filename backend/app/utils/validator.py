@@ -1,15 +1,27 @@
 import io
+import logging
 
 from fastapi import HTTPException, UploadFile
 from PIL import Image
 
-from app.config import ALLOWED_MIME_TYPES, MAX_UPLOAD_SIZE_BYTES
+from app.config import (
+    ALLOWED_MIME_TYPES,
+    MAX_IMAGE_HEIGHT,
+    MAX_IMAGE_PIXELS,
+    MAX_IMAGE_WIDTH,
+    MAX_UPLOAD_SIZE_BYTES,
+)
+
+logger = logging.getLogger("who-is-that-pykemon.validator")
+
+# Protect against decompression bomb attacks
+Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
 
 
 def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> tuple[Image.Image, str]:
     """
     Validates uploaded image file against size limits, allowed MIME types,
-    and checks file integrity using Pillow.
+    image resolution constraints, and checks file integrity using Pillow.
 
     Args:
         file (UploadFile): The uploaded FastAPI file object.
@@ -19,7 +31,7 @@ def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> tuple[Image
         Tuple[Image.Image, str]: Validated PIL Image and detected format.
 
     Raises:
-        HTTPException: If file violates size, MIME type, or is corrupted.
+        HTTPException: If file violates size, MIME type, dimensions, or is corrupted.
     """
     # 1. Check file size
     if len(image_bytes) == 0:
@@ -40,7 +52,7 @@ def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> tuple[Image
             detail=f"Unsupported file format '{content_type}'. Allowed formats: PNG, JPEG, WEBP.",
         )
 
-    # 3. Verify image integrity with Pillow
+    # 3. Verify image integrity and dimensions with Pillow
     try:
         buf = io.BytesIO(image_bytes)
         img = Image.open(buf)
@@ -49,9 +61,27 @@ def validate_uploaded_image(file: UploadFile, image_bytes: bytes) -> tuple[Image
         # Re-open image since verify() invalidates the file pointer
         buf.seek(0)
         img = Image.open(buf)
+
+        # 4. Check dimension limits & decompression bomb protection
+        width, height = img.size
+        if width > MAX_IMAGE_WIDTH or height > MAX_IMAGE_HEIGHT:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Image dimensions ({width}x{height}) exceed maximum allowed limit of {MAX_IMAGE_WIDTH}x{MAX_IMAGE_HEIGHT}px.",
+            )
+
+        if (width * height) > MAX_IMAGE_PIXELS:
+            raise HTTPException(
+                status_code=400,
+                detail="Image exceeds maximum allowable pixel density.",
+            )
+
         detected_format = img.format or "PNG"
         return img, detected_format
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.warning(f"Image integrity validation failed: {e}")
         raise HTTPException(
-            status_code=400, detail=f"Corrupted or unreadable image file: {e!s}"
+            status_code=400, detail="Corrupted, unreadable, or invalid image file."
         ) from e

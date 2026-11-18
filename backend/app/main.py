@@ -18,7 +18,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from app.config import ASSETS_DIR, TEMP_DIR, THEMES
+from app.config import (
+    ALLOWED_ORIGINS,
+    ASSETS_DIR,
+    MAX_NAME_LENGTH,
+    TEMP_DIR,
+    THEMES,
+)
 from app.services.image_processor import (
     generate_black_silhouette,
     process_and_remove_background,
@@ -39,11 +45,12 @@ app = FastAPI(
 )
 
 # Configure Cross-Origin Resource Sharing (CORS) for PWA frontend access
+is_wildcard_origin = "*" in ALLOWED_ORIGINS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=["*"] if is_wildcard_origin else ALLOWED_ORIGINS,
+    allow_credentials=False if is_wildcard_origin else True,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -135,10 +142,18 @@ async def create_video_job(
     image_bytes = await file.read()
     validate_uploaded_image(file, image_bytes)
 
+    raw_name = (name or "").strip()
+    if len(raw_name) > MAX_NAME_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Name exceeds maximum allowed length of {MAX_NAME_LENGTH} characters.",
+        )
+    clean_name = "".join(ch for ch in raw_name if ch.isprintable()) or "Someone"
+
     valid_theme = theme if theme in THEMES else "classic"
     job = await job_manager.create_job(
         image_bytes=image_bytes,
-        person_name=name,
+        person_name=clean_name,
         theme=valid_theme,
         font_style=font_style,
     )
@@ -245,7 +260,13 @@ async def generate_video_endpoint(
     image_bytes = await file.read()
     validate_uploaded_image(file, image_bytes)
 
-    clean_name = name.strip() or "Someone"
+    raw_name = (name or "").strip()
+    if len(raw_name) > MAX_NAME_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Name exceeds maximum allowed length of {MAX_NAME_LENGTH} characters.",
+        )
+    clean_name = "".join(ch for ch in raw_name if ch.isprintable()) or "Someone"
     valid_theme = theme if theme in THEMES else "classic"
 
     try:
@@ -278,4 +299,6 @@ async def generate_video_endpoint(
         )
     except Exception as e:
         logger.exception(f"Error during video generation: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate video: {e!s}") from e
+        raise HTTPException(
+            status_code=500, detail="Failed to generate video due to an internal server error."
+        ) from e

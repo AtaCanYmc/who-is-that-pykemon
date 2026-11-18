@@ -6,7 +6,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 
-from app.config import TEMP_DIR
+from fastapi import HTTPException
+
+from app.config import (
+    MAX_CONCURRENT_JOBS,
+    MAX_QUEUED_JOBS,
+    TEMP_DIR,
+    TEMP_FILE_MAX_AGE_SECONDS,
+)
 from app.services.image_processor import (
     generate_black_silhouette,
     process_and_remove_background,
@@ -57,12 +64,13 @@ class JobManager:
     """
     Thread-safe asynchronous Job and Task Queue Manager.
     Handles background processing, step-by-step progress tracking,
-    and output retrieval.
+    concurrency rate limiting, and output retrieval.
     """
 
     def __init__(self):
         self._jobs: dict[str, JobRecord] = {}
         self._lock = asyncio.Lock()
+        self._semaphore = asyncio.Semaphore(MAX_CONCURRENT_JOBS)
         self._background_tasks = set()
 
     def _update_job_status(self, job: JobRecord, status: JobStatus, custom_msg: str | None = None):
@@ -72,6 +80,20 @@ class JobManager:
         job.message = custom_msg or default_msg
         job.updated_at = time.time()
 
+    async def prune_expired_jobs(self, max_age_seconds: int = TEMP_FILE_MAX_AGE_SECONDS) -> int:
+        """Removes completed or failed jobs older than max_age_seconds to prevent memory leaks."""
+        now = time.time()
+        async with self._lock:
+            expired_ids = [
+                jid
+                for jid, job in self._jobs.items()
+                if job.status in (JobStatus.COMPLETED, JobStatus.FAILED)
+                and (now - job.updated_at) > max_age_seconds
+            ]
+            for jid in expired_ids:
+                del self._jobs[jid]
+        return len(expired_ids)
+
     async def create_job(
         self,
         image_bytes: bytes,
@@ -80,15 +102,29 @@ class JobManager:
         font_style: str = "solid",
     ) -> JobRecord:
         """Registers a new video rendering job and launches the background processing worker."""
-        job_id = uuid.uuid4().hex
-        job = JobRecord(
-            job_id=job_id,
-            person_name=person_name.strip() or "Pykemon",
-            theme=theme,
-            font_style=font_style,
-        )
-
+        # Enforce queue capacity bounds to protect system resources
         async with self._lock:
+            active_jobs = sum(
+                1
+                for j in self._jobs.values()
+                if j.status not in (JobStatus.COMPLETED, JobStatus.FAILED)
+            )
+            if active_jobs >= MAX_QUEUED_JOBS:
+                logger.warning(
+                    f"Job queue rejected: active jobs count ({active_jobs}) reached limit ({MAX_QUEUED_JOBS})"
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail="Video processing service is currently at maximum capacity. Please retry in a few moments.",
+                )
+
+            job_id = uuid.uuid4().hex
+            job = JobRecord(
+                job_id=job_id,
+                person_name=person_name.strip() or "Pykemon",
+                theme=theme,
+                font_style=font_style,
+            )
             self._jobs[job_id] = job
 
         # Spawn asynchronous processing task and hold reference
@@ -102,54 +138,57 @@ class JobManager:
         return self._jobs.get(job_id)
 
     async def _process_job_worker(self, job_id: str, image_bytes: bytes):
-        """Worker executing image segmentation and MoviePy video synthesis."""
+        """Worker executing image segmentation and MoviePy video synthesis with concurrency gating."""
         job = self._jobs.get(job_id)
         if not job:
             return
 
-        try:
-            logger.info(
-                f"[Job {job_id}] Starting processing for '{job.person_name}' (Theme: {job.theme}, Font: {job.font_style})..."
-            )
+        async with self._semaphore:
+            try:
+                logger.info(
+                    f"[Job {job_id}] Starting processing for '{job.person_name}' (Theme: {job.theme}, Font: {job.font_style})..."
+                )
 
-            # Step 1: Background removal
-            self._update_job_status(job, JobStatus.REMOVING_BACKGROUND)
-            # Run CPU-bound rembg in default executor
-            loop = asyncio.get_event_loop()
-            transparent_img = await loop.run_in_executor(
-                None, process_and_remove_background, image_bytes
-            )
+                # Step 1: Background removal
+                self._update_job_status(job, JobStatus.REMOVING_BACKGROUND)
+                # Run CPU-bound rembg in default executor
+                loop = asyncio.get_event_loop()
+                transparent_img = await loop.run_in_executor(
+                    None, process_and_remove_background, image_bytes
+                )
 
-            # Step 2: Silhouette generation
-            self._update_job_status(job, JobStatus.GENERATING_SILHOUETTE)
-            silhouette_img = await loop.run_in_executor(
-                None, generate_black_silhouette, transparent_img
-            )
+                # Step 2: Silhouette generation
+                self._update_job_status(job, JobStatus.GENERATING_SILHOUETTE)
+                silhouette_img = await loop.run_in_executor(
+                    None, generate_black_silhouette, transparent_img
+                )
 
-            # Step 3: Video synthesis & encoding
-            self._update_job_status(job, JobStatus.RENDERING_VIDEO)
-            output_video_path = TEMP_DIR / f"pykemon_{job_id}.mp4"
+                # Step 3: Video synthesis & encoding
+                self._update_job_status(job, JobStatus.RENDERING_VIDEO)
+                output_video_path = TEMP_DIR / f"pykemon_{job_id}.mp4"
 
-            await loop.run_in_executor(
-                None,
-                generate_reveal_video,
-                transparent_img,
-                silhouette_img,
-                job.person_name,
-                output_video_path,
-                job.theme,
-                job.font_style,
-            )
+                await loop.run_in_executor(
+                    None,
+                    generate_reveal_video,
+                    transparent_img,
+                    silhouette_img,
+                    job.person_name,
+                    output_video_path,
+                    job.theme,
+                    job.font_style,
+                )
 
-            # Step 4: Completed
-            job.video_path = output_video_path
-            self._update_job_status(job, JobStatus.COMPLETED)
-            logger.info(f"[Job {job_id}] Successfully finished rendering: {output_video_path}")
+                # Step 4: Completed
+                job.video_path = output_video_path
+                self._update_job_status(job, JobStatus.COMPLETED)
+                logger.info(f"[Job {job_id}] Successfully finished rendering: {output_video_path}")
 
-        except Exception as e:
-            logger.exception(f"[Job {job_id}] Execution error: {e}")
-            job.error = str(e)
-            self._update_job_status(job, JobStatus.FAILED, f"Error: {e!s}")
+            except Exception as e:
+                logger.exception(f"[Job {job_id}] Execution error: {e}")
+                job.error = (
+                    "Video processing failed. Please verify the uploaded image and try again."
+                )
+                self._update_job_status(job, JobStatus.FAILED, "Processing failed.")
 
 
 # Global singleton instance

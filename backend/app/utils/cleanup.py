@@ -42,6 +42,16 @@ def purge_expired_temp_files(
                         )
                 except Exception as e:
                     logger.warning(f"Error purging file {file_path}: {e}")
+
+        # Prune expired in-memory job records
+        try:
+            import asyncio
+
+            from app.services.job_manager import job_manager
+
+            asyncio.run(job_manager.prune_expired_jobs(max_age_seconds))
+        except Exception as e:
+            logger.debug(f"In-memory job prune skipped: {e}")
     except Exception as e:
         logger.error(f"Error scanning temp directory for cleanup: {e}")
 

@@ -17,6 +17,19 @@ TOTAL_DURATION = 6.77
 # File upload and validation limits
 MAX_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024  # 15 MB
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_NAME_LENGTH = 100
+MAX_IMAGE_WIDTH = 4096
+MAX_IMAGE_HEIGHT = 4096
+MAX_IMAGE_PIXELS = 16_000_000  # 16 Megapixels decompression bomb protection
+
+# Concurrency & Queue Capacity limits
+MAX_CONCURRENT_JOBS = int(os.environ.get("MAX_CONCURRENT_JOBS", "3"))
+MAX_QUEUED_JOBS = int(os.environ.get("MAX_QUEUED_JOBS", "20"))
+
+# CORS allowed origins
+ALLOWED_ORIGINS = [
+    origin.strip() for origin in os.environ.get("ALLOWED_ORIGINS", "*").split(",") if origin.strip()
+]
 
 # Temporary file directory & Garbage Collection policy
 TEMP_DIR = Path(os.environ.get("TEMP_DIR", "/tmp/who_is_that_pykemon"))

@@ -157,6 +157,9 @@ export default function App() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (rawImageUrl && rawImageUrl.startsWith('blob:')) URL.revokeObjectURL(rawImageUrl);
+      if (previewUrl && previewUrl.startsWith('blob:') && previewUrl !== rawImageUrl) URL.revokeObjectURL(previewUrl);
+      if (videoBlobUrl && videoBlobUrl.startsWith('blob:')) URL.revokeObjectURL(videoBlobUrl);
       const url = URL.createObjectURL(file);
       setRawImageUrl(url);
       setSelectedFile(file);
@@ -175,6 +178,9 @@ export default function App() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (file.type.startsWith('image/')) {
+        if (rawImageUrl && rawImageUrl.startsWith('blob:')) URL.revokeObjectURL(rawImageUrl);
+        if (previewUrl && previewUrl.startsWith('blob:') && previewUrl !== rawImageUrl) URL.revokeObjectURL(previewUrl);
+        if (videoBlobUrl && videoBlobUrl.startsWith('blob:')) URL.revokeObjectURL(videoBlobUrl);
         const url = URL.createObjectURL(file);
         setRawImageUrl(url);
         setSelectedFile(file);
@@ -194,6 +200,9 @@ export default function App() {
   const handleCropComplete = (croppedBlob: Blob) => {
     const file = new File([croppedBlob], 'cropped_subject.png', { type: 'image/png' });
     setSelectedFile(file);
+    if (previewUrl && previewUrl.startsWith('blob:') && previewUrl !== rawImageUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setPreviewUrl(URL.createObjectURL(croppedBlob));
     setShowCropper(false);
     soundEffects.playClickSound();
@@ -346,6 +355,9 @@ export default function App() {
   };
 
   const resetAll = () => {
+    if (previewUrl && previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl);
+    if (rawImageUrl && rawImageUrl.startsWith('blob:') && rawImageUrl !== previewUrl) URL.revokeObjectURL(rawImageUrl);
+    if (videoBlobUrl && videoBlobUrl.startsWith('blob:')) URL.revokeObjectURL(videoBlobUrl);
     setSelectedFile(null);
     setPreviewUrl(null);
     setRawImageUrl(null);

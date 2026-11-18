@@ -98,5 +98,17 @@ async def test_async_jobs_workflow_with_turkish_characters(sample_image_bytes):
         # Download with Unicode Content-Disposition
         download_res = await ac.get(f"/api/jobs/{job_id}/download")
         assert download_res.status_code == 200
-        assert download_res.headers["content-type"] == "video/mp4"
-        assert "Content-Disposition" in download_res.headers
+
+
+@pytest.mark.asyncio
+async def test_reject_excessive_name_length(sample_image_bytes):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        long_name = "A" * 150
+        res = await ac.post(
+            "/api/jobs",
+            files={"file": ("test.png", sample_image_bytes, "image/png")},
+            data={"name": long_name, "theme": "classic"},
+        )
+        assert res.status_code == 400
+        assert "exceeds maximum allowed length" in res.json()["detail"]

@@ -72,14 +72,14 @@
         </p>
 
         <div class="hero-cta-group">
-          <button type="button" id="heroDownloadBtn" class="btn btn-primary btn-lg direct-download-btn" data-platform="auto">
+          <a href="downloads/Who_is_That_Pykemon.dmg" download="Who_is_That_Pykemon.dmg" id="heroDownloadBtn" class="btn btn-primary btn-lg direct-download-link" data-platform="auto">
             <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            <span id="heroDownloadText">Download Desktop App</span>
-          </button>
+            <span id="heroDownloadText">Download for macOS (.dmg)</span>
+          </a>
 
           <a href="#demo" class="btn btn-outline btn-lg">
             <svg class="icon-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -96,12 +96,11 @@
         <div class="hero-platform-selector">
           <span class="platform-selector-label">Direct download:</span>
           <div class="platform-pill-group">
-            <button type="button" class="platform-pill-btn" data-platform="macos">macOS (.dmg)</button>
-            <button type="button" class="platform-pill-btn" data-platform="windows">Windows (.exe)</button>
-            <button type="button" class="platform-pill-btn" data-platform="linux">Linux (.AppImage)</button>
+            <a href="downloads/Who_is_That_Pykemon.dmg" download="Who_is_That_Pykemon.dmg" class="platform-pill-btn" data-platform="macos">macOS (.dmg)</a>
+            <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest" target="_blank" rel="noopener noreferrer" class="platform-pill-btn" data-platform="windows">Windows (.exe)</a>
+            <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest" target="_blank" rel="noopener noreferrer" class="platform-pill-btn" data-platform="linux">Linux (.AppImage)</a>
           </div>
         </div>
-        <div id="heroDownloadStatus" class="download-status-banner" role="status" aria-live="polite"></div>
 
         <figure class="hero-banner-figure">
           <img 
@@ -327,11 +326,11 @@
               <div class="platform-row">
                 <div class="platform-info">
                   <span class="platform-name">macOS</span>
-                  <span class="platform-meta">Universal (.dmg) · Apple Silicon & Intel</span>
+                  <span class="platform-meta">Universal (.dmg) · 3.1 MB · Apple Silicon & Intel</span>
                 </div>
-                <button type="button" class="btn btn-primary btn-sm direct-download-btn" data-platform="macos">
+                <a href="downloads/Who_is_That_Pykemon.dmg" download="Who_is_That_Pykemon.dmg" class="btn btn-primary btn-sm">
                   Download .dmg
-                </button>
+                </a>
               </div>
 
               <div class="platform-row">
@@ -339,9 +338,9 @@
                   <span class="platform-name">Windows</span>
                   <span class="platform-meta">64-bit Installer (.exe) · Windows 10/11</span>
                 </div>
-                <button type="button" class="btn btn-primary btn-sm direct-download-btn" data-platform="windows">
+                <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
                   Download .exe
-                </button>
+                </a>
               </div>
 
               <div class="platform-row">
@@ -349,13 +348,11 @@
                   <span class="platform-name">Linux</span>
                   <span class="platform-meta">Standalone (.AppImage) · x86_64</span>
                 </div>
-                <button type="button" class="btn btn-primary btn-sm direct-download-btn" data-platform="linux">
+                <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
                   Download .AppImage
-                </button>
+                </a>
               </div>
             </div>
-
-            <div id="downloadsStatusMsg" class="download-status-banner" role="status" aria-live="polite"></div>
 
             <div class="download-actions">
               <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/releases" class="btn btn-secondary btn-block" target="_blank" rel="noopener noreferrer">

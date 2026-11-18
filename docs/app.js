@@ -37,24 +37,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const platformConfig = {
     macos: {
       name: 'macOS',
-      ext: '.dmg',
-      label: 'Download for macOS (.dmg)',
-      pattern: /\.(dmg|app\.tar\.gz)$/i,
-      directUrl: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest/download/Who-is-That-Pykemon.dmg'
+      label: 'Download for macOS (.dmg) · 3.1 MB',
+      href: 'downloads/Who_is_That_Pykemon.dmg',
+      download: 'Who_is_That_Pykemon.dmg'
     },
     windows: {
       name: 'Windows',
-      ext: '.exe',
       label: 'Download for Windows (.exe)',
-      pattern: /\.(exe|msi)$/i,
-      directUrl: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest/download/Who-is-That-Pykemon-setup.exe'
+      href: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest',
+      target: '_blank'
     },
     linux: {
       name: 'Linux',
-      ext: '.AppImage',
       label: 'Download for Linux (.AppImage)',
-      pattern: /\.(AppImage|deb)$/i,
-      directUrl: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest/download/Who-is-That-Pykemon.AppImage'
+      href: 'https://github.com/AtaCanYmc/who-is-that-pykemon/releases/latest',
+      target: '_blank'
     }
   };
 
@@ -71,103 +68,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (platform.includes('linux') || userAgent.includes('linux')) {
       return 'linux';
     }
-    return 'macos'; // fallback
+    return 'macos'; // default
   }
 
   const userPlatform = detectPlatform();
 
-  // Initialize Hero Download Button Label
-  if (heroDownloadText && platformConfig[userPlatform]) {
-    heroDownloadText.textContent = platformConfig[userPlatform].label;
-  }
-
-  // Update Status Banner Helper
-  function showStatus(message, isError = false) {
-    [heroDownloadStatus, downloadsStatusMsg].forEach((el) => {
-      if (!el) return;
-      el.textContent = message;
-      el.style.color = isError ? 'var(--color-brand-red)' : 'var(--color-brand-blue)';
-      el.style.opacity = '1';
-    });
-  }
-
-  // Fetch Latest GitHub Release Info
-  async function getLatestRelease() {
-    if (cachedRelease) return cachedRelease;
-    if (isFetchingRelease) return null;
-    isFetchingRelease = true;
-    try {
-      const res = await fetch('https://api.github.com/repos/AtaCanYmc/who-is-that-pykemon/releases/latest');
-      if (!res.ok) {
-        // If 404 (no releases published yet), try all releases list
-        const allRes = await fetch('https://api.github.com/repos/AtaCanYmc/who-is-that-pykemon/releases');
-        if (allRes.ok) {
-          const list = await allRes.json();
-          if (Array.isArray(list) && list.length > 0) {
-            cachedRelease = list[0];
-            return cachedRelease;
-          }
-        }
-        return null;
-      }
-      cachedRelease = await res.json();
-      return cachedRelease;
-    } catch {
-      return null;
-    } finally {
-      isFetchingRelease = false;
+  // Configure Hero Download Button Based on Detected OS
+  if (heroDownloadBtn && heroDownloadText) {
+    const activeConfig = platformConfig[userPlatform] || platformConfig.macos;
+    heroDownloadText.textContent = activeConfig.label;
+    heroDownloadBtn.href = activeConfig.href;
+    if (activeConfig.download) {
+      heroDownloadBtn.setAttribute('download', activeConfig.download);
+      heroDownloadBtn.removeAttribute('target');
+      heroDownloadBtn.removeAttribute('rel');
+    } else {
+      heroDownloadBtn.removeAttribute('download');
+      heroDownloadBtn.setAttribute('target', '_blank');
+      heroDownloadBtn.setAttribute('rel', 'noopener noreferrer');
     }
   }
-
-  // Direct Binary Download Trigger
-  async function triggerDirectDownload(targetPlatformKey) {
-    const targetKey = targetPlatformKey === 'auto' ? userPlatform : targetPlatformKey;
-    const config = platformConfig[targetKey] || platformConfig.macos;
-
-    showStatus(`Looking up latest release for ${config.name}...`);
-
-    try {
-      const release = await getLatestRelease();
-      let downloadUrl = null;
-      let filename = null;
-
-      if (release && Array.isArray(release.assets) && release.assets.length > 0) {
-        const matchingAsset = release.assets.find((asset) => config.pattern.test(asset.name));
-        if (matchingAsset) {
-          downloadUrl = matchingAsset.browser_download_url;
-          filename = matchingAsset.name;
-        }
-      }
-
-      // If release asset found, download directly
-      if (downloadUrl) {
-        showStatus(`Downloading ${filename || config.name}...`);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        a.download = filename || `Who-is-That-Pykemon${config.ext}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => showStatus(`Download started: ${filename}`), 1000);
-      } else {
-        // Fallback: direct to GitHub releases page where compiled assets are published
-        showStatus(`Opening GitHub Releases for ${config.name} installer...`);
-        window.open('https://github.com/AtaCanYmc/who-is-that-pykemon/releases', '_blank', 'noopener,noreferrer');
-      }
-    } catch {
-      showStatus(`Opening GitHub Releases page...`);
-      window.open('https://github.com/AtaCanYmc/who-is-that-pykemon/releases', '_blank', 'noopener,noreferrer');
-    }
-  }
-
-  // Wire Download Buttons
-  document.querySelectorAll('.direct-download-btn, .platform-pill-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const platformKey = btn.getAttribute('data-platform') || 'auto';
-      triggerDirectDownload(platformKey);
-    });
-  });
 
   // Themes Map
   const themes = {

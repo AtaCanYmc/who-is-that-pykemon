@@ -1,7 +1,7 @@
 {
   "name": "who-is-that-pykemon-root",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "type": "module",
   "scripts": {
     "prepare": "husky || true",

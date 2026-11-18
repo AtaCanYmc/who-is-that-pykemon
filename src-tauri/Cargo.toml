@@ -1,6 +1,6 @@
 [package]
 name = "who-is-that-pykemon"
-version = "1.4.0"
+version = "1.5.0"
 description = "Who is That Pykemon desktop application"
 authors = ["AtaCanYmc"]
 license = "MIT"

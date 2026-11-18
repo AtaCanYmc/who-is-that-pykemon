@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.1](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.5.0...v1.5.1) (2026-11-18)
+
+
+### Documentation
+
+* add macos gatekeeper quarantine resolution tip ([e32d7fc](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/e32d7fc8a8d27ab823c7197a908ce47a630f8afd))
+* showcase desktop studio preview screenshot in readme and web documentation ([4d5ab7f](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/4d5ab7f306501d08c97ecf54cc3d67ece5183f99))
+
 ## [1.5.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.4.0...v1.5.0) (2026-11-18)
 
 

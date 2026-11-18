@@ -356,7 +356,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 font-sans selection:bg-poke-yellow selection:text-slate-950">
+    <div className="min-h-screen flex flex-col items-center justify-start p-3 sm:p-5 md:p-6 pb-24 md:pb-6 font-sans selection:bg-poke-yellow selection:text-slate-950">
       {/* Interactive Crop Modal (Native HTML5 <dialog>) */}
       {showCropper && rawImageUrl && (
         <ImageCropper
@@ -368,7 +368,7 @@ export default function App() {
       )}
 
       {/* Top Header & Broadcast Controls */}
-      <nav className="w-full max-w-5xl flex items-center justify-between py-2 mb-4 border-b border-slate-800/80 dark:border-slate-800 light:border-slate-300 pb-3">
+      <nav className="w-full max-w-5xl flex items-center justify-between py-2 mb-3 border-b border-slate-800/80 dark:border-slate-800 light:border-slate-300 pb-3">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20"></span>
@@ -425,9 +425,9 @@ export default function App() {
       </nav>
 
       {/* Main Studio Synthesizer Workstation */}
-      <div className="w-full max-w-5xl flex flex-col items-center my-auto">
+      <div className="w-full max-w-5xl flex flex-col items-center flex-1 my-1 sm:my-3">
         {/* Header & Logo */}
-        <header className="w-full flex flex-col items-center pt-1 pb-6">
+        <header className="w-full flex flex-col items-center pt-1 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-poke-red border-2 border-white flex items-center justify-center shadow-md relative overflow-hidden">
               <div className="w-full h-1 bg-slate-950 absolute"></div>
@@ -440,21 +440,21 @@ export default function App() {
               {t.appTitle} <span className="text-white dark:text-white light:text-slate-900">{t.pykemon}</span>?
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-400 light:text-slate-600 mt-2 text-center font-medium max-w-md sm:max-w-lg">
+          <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-400 light:text-slate-600 mt-1.5 text-center font-medium max-w-md sm:max-w-lg">
             {t.tagline}
           </p>
         </header>
 
         {/* Global Error Banner */}
         {error && (
-          <div className="w-full mb-5 p-3.5 bg-red-950/80 border border-red-700/80 rounded-2xl flex items-start gap-3 text-red-200 text-xs sm:text-sm shadow-sm">
+          <div className="w-full mb-4 p-3.5 bg-red-950/80 border border-red-700/80 rounded-2xl flex items-start gap-3 text-red-200 text-xs sm:text-sm shadow-sm">
             <AlertCircle className="w-4 h-4 mt-0.5 text-red-400 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Studio Workstation Console */}
-        <main className="w-full studio-deck-card rounded-2xl p-5 sm:p-7 lg:p-8 flex flex-col relative overflow-hidden transition-colors">
+        <main className="w-full studio-deck-card rounded-2xl p-4 sm:p-6 md:p-7 flex flex-col relative overflow-hidden transition-colors">
           {/* Studio Accent Top Bar */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-poke-red"></div>
 
@@ -470,10 +470,10 @@ export default function App() {
             </div>
           ) : !videoBlobUrl ? (
             /* Responsive 2-Column Studio Grid: Left Stage Monitor / Right Control Deck */
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-              {/* Left Column: Visual Stage Monitor & Lower-Third (lg:col-span-5) */}
-              <div className="lg:col-span-5 flex flex-col gap-4">
-                <div className="relative w-full">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-7 items-start">
+              {/* Left Column: Visual Stage Monitor & Lower-Third (md:col-span-5) */}
+              <div className="md:col-span-5 flex flex-col gap-3.5 sm:gap-4">
+                <div className="relative w-full max-w-[340px] mx-auto">
                   <div
                     onClick={() => {
                       soundEffects.playClickSound();
@@ -539,8 +539,8 @@ export default function App() {
                 />
               </div>
 
-              {/* Right Column: Control Deck & Parameters (lg:col-span-7) */}
-              <div className="lg:col-span-7 flex flex-col gap-5">
+              {/* Right Column: Control Deck & Parameters (md:col-span-7) */}
+              <div className="md:col-span-7 flex flex-col gap-4">
                 {/* Subject Name Input */}
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="name" className="text-[11px] font-bold text-slate-300 dark:text-slate-300 light:text-slate-700 tracking-wider uppercase flex items-center justify-between">
@@ -588,8 +588,8 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Desktop Primary CTA Button (Visible on lg screens) */}
-                <div className="hidden lg:flex flex-col gap-2 pt-2">
+                {/* Desktop Primary CTA Button (Visible on md screens and up) */}
+                <div className="hidden md:flex flex-col gap-2 pt-1">
                   <button
                     type="button"
                     disabled={!selectedFile || isLoading}

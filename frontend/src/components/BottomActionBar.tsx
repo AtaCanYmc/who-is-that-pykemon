@@ -31,7 +31,7 @@ export const BottomActionBar: React.FC<BottomActionBarProps> = ({
   t,
 }) => {
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-t border-slate-700/80 dark:border-slate-800 light:border-slate-300 flex items-center justify-center shadow-lg safe-area-bottom">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-t border-slate-700/80 dark:border-slate-800 light:border-slate-300 flex items-center justify-center shadow-lg safe-area-bottom">
       <div className="max-w-md w-full flex items-center gap-2">
         {!hasVideo ? (
           <>

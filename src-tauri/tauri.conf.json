@@ -15,8 +15,8 @@
         "title": "Who is That Pykemon?",
         "width": 1080,
         "height": 800,
-        "minWidth": 600,
-        "minHeight": 500,
+        "minWidth": 768,
+        "minHeight": 560,
         "resizable": true,
         "fullscreen": false
       }

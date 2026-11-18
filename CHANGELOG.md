@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.4.0...v1.5.0) (2026-11-18)
+
+
+### Features
+
+* **desktop:** add tauri 2 desktop application scaffolding and build targets ([da2691b](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/da2691b18baf227bf86acfcb8f760d1a2dea4d4f))
+* **downloads:** add direct compiled desktop app downloads with os detection and release workflow ([879b6a7](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/879b6a70e8a420b9c970023b871ca66292e7ef08))
+* **pages:** add promotional showcase website and github pages deployment workflow ([b4b33a0](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/b4b33a0d046fea0451353131b9648645e0271edf))
+* **release:** configure release-please to synchronize version across all application subsystems ([8d38f93](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/8d38f93b04f56db2957f8d484ede4b96aae2b7bd))
+
+
+### Bug Fixes
+
+* **security:** harden input validation, concurrency bounds, headers, and container permissions ([3a1d557](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/3a1d55734a471bc95f6be135253aa2bf750f9b76))
+
+
+### Documentation
+
+* add governance workflows, anti-slop linters, and pre-commit hooks ([5789e58](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/5789e58cd11443aad8266204ff88388d27ed98b5))
+* add turkish legal and kvkk compliance audit report ([0c754a4](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/0c754a48698f06216366906acef88ef7c9c3ba9b))
+* upgrade repository governance and documentation to production standards ([03e48d2](https://github.com/AtaCanYmc/who-is-that-pykemon/commit/03e48d2afde3d4689154db91b8d7e263a2a6877c))
+
 ## [1.4.0](https://github.com/AtaCanYmc/who-is-that-pykemon/compare/v1.3.0...v1.4.0) (2026-08-28)
 
 

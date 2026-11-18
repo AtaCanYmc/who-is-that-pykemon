@@ -76,12 +76,13 @@ Husky and commitlint validate commit messages automatically on git commit.
 Run verification commands before pushing commits:
 
 ```bash
-# Run backend test suite with coverage
-pytest backend/tests/ -v --cov=backend/app
+# Run all tests and linters via Makefile
+make test
+make lint
 
-# Run frontend typecheck and production build
-npm test --prefix frontend
-npm run build --prefix frontend
+# Or run individual verification suites
+make test-backend
+make test-frontend
 ```
 
 Verify that linters report no issues:

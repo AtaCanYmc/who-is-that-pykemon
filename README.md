@@ -237,6 +237,7 @@ who-is-that-pykemon/
 ├── .pre-commit-hooks.yaml    # Reusable pre-commit hook definitions
 ├── CONTRIBUTING.md           # Contribution workflow and commit conventions
 ├── LICENSE                   # MIT open-source license
+├── Makefile                  # Developer workflow automation targets
 ├── ROADMAP.md                # Version milestones and technical roadmap
 ├── SECURITY.md               # Vulnerability disclosure policies
 └── docker-compose.yml        # Multi-container orchestration definition

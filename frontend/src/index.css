@@ -18,10 +18,82 @@
   font-display: swap;
 }
 
+:root {
+  color-scheme: light dark;
+
+  /* Brand Palette */
+  --poke-red: #DC2626;
+  --poke-red-hover: #B91C1C;
+  --poke-yellow: #FFCB05;
+  --poke-yellow-hover: #EAB308;
+  --poke-blue: #2563EB;
+  --poke-blue-hover: #1D4ED8;
+  --poke-dark: #0F172A;
+
+  /* Studio Theme Tokens (Dark Mode Default) */
+  --studio-bg: #090D16;
+  --studio-deck: #0F172A;
+  --studio-surface: #1E293B;
+  --studio-surface-raised: #334155;
+  --studio-border: #334155;
+  --studio-border-subtle: #1E293B;
+  --studio-border-focus: #FFCB05;
+  --studio-ink: #F8FAFC;
+  --studio-ink-muted: #94A3B8;
+
+  /* Scrollbar Tokens */
+  --scrollbar-track: var(--studio-bg);
+  --scrollbar-thumb: var(--studio-surface-raised);
+
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+html:not(.dark) {
+  --studio-bg: #F1F5F9;
+  --studio-deck: #FFFFFF;
+  --studio-surface: #F8FAFC;
+  --studio-surface-raised: #E2E8F0;
+  --studio-border: #CBD5E1;
+  --studio-border-subtle: #E2E8F0;
+  --studio-border-focus: #2563EB;
+  --studio-ink: #0F172A;
+  --studio-ink-muted: #64748B;
+
+  --scrollbar-track: var(--studio-bg);
+  --scrollbar-thumb: #94A3B8;
+}
+
+/* Fallback for legacy WebKit browsers without scrollbar-color */
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+  }
+}
+
+/* Native Modal Dialog Backing & Scroll Containment (Modern Web Guidance) */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background: rgba(9, 13, 22, 0.75);
+}
+
 @layer utilities {
   .text-poke-stroke {
     -webkit-text-stroke: 3px #2A75BB;
-    text-shadow: 0 4px 0 #1D2C5E, 0 0 10px rgba(42, 117, 187, 0.6);
+    text-shadow: 0 3px 0 #1D2C5E;
   }
   .text-poke-stroke-sm {
     -webkit-text-stroke: 1.5px #2A75BB;
@@ -33,74 +105,40 @@
   }
   .text-neon-stroke {
     -webkit-text-stroke: 2px #FF007F;
-    text-shadow: 0 0 12px #00FFFF, 0 0 20px #FF007F;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
   }
 
-  /* Dark Glassmorphism */
-  .dark .glass-card-interactive {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  /* Tactile Broadcast Studio Panel (replaces generic glassmorphism) */
+  .studio-deck-card {
+    background: var(--studio-deck);
+    border: 1px solid var(--studio-border);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
   }
 
-  /* Light Glassmorphism */
-  html:not(.dark) .glass-card-interactive {
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(203, 213, 225, 0.8);
-    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  .studio-monitor-bezel {
+    background: var(--studio-surface);
+    border: 1.5px solid var(--studio-border);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
   }
 
-  .dark .retro-grid-bg {
-    background-color: #020617;
-    background-size: 32px 32px;
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  /* Physical tactile button press effect */
+  .btn-tactile {
+    transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease;
   }
-
-  html:not(.dark) .retro-grid-bg {
-    background-color: #F8FAFC;
-    background-size: 32px 32px;
-    background-image: linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  .btn-tactile:active {
+    transform: translateY(1.5px);
   }
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  overflow-x: clip; /* Hallmark gate 34: root overflow-x: clip */
   font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  background-color: var(--studio-bg);
+  color: var(--studio-ink);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-}
-
-html.dark body {
-  background-color: #020617;
-  color: #F8FAFC;
-}
-
-html:not(.dark) body {
-  background-color: #F8FAFC;
-  color: #0F172A;
-}
-
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 9999px;
-}
-html:not(.dark) ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
 }

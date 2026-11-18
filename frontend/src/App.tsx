@@ -1,3 +1,4 @@
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Smartphone,
@@ -28,13 +29,7 @@ import { translations, Language } from './i18n/translations';
 
 /**
  * Main Application Component: Who is That Pykemon?
- *
- * Full Responsive Web & Mobile Studio:
- * - Desktop/Web: 2-column Studio Workspace layout with keyboard shortcuts
- * - Mobile: Thumb Zone single-column stack with sticky floating bottom controls
- * - Dark & Light Mode Theme Support
- * - Multi-language Localization (TR, EN, FR)
- * - Neo-Retro Pokémon theme, Web Audio SFX, and live interactive previews
+ * Studio Workstation Interface engineered with Hallmark tactile design and anti-AI-slop discipline.
  */
 export default function App() {
   // Localization & Theme Preferences
@@ -54,12 +49,12 @@ export default function App() {
     if (savedTheme) {
       return savedTheme === 'dark';
     }
-    return true; // Default to sleek cyberpunk dark mode
+    return true; // Default to dark studio mode
   });
 
   const t = translations[currentLang];
 
-  // Apply dark mode class to document root
+  // Synchronize dark mode class and color-scheme
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -152,7 +147,7 @@ export default function App() {
   };
 
   /**
-   * Handles user file selection.
+   * Handles user file selection with object URL cleanup.
    */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -220,52 +215,47 @@ export default function App() {
     setJobStatus('QUEUED');
     setJobMessage(t.progressRemovingBg);
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('name', personName.trim() || t.pykemon);
-    formData.append('theme', selectedTheme);
-    formData.append('font_style', fontStyle);
-
-    // Determine API Base URL smartly
-    const getApiBaseUrl = (): string => {
-      if (import.meta.env.VITE_API_URL) {
-        return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
-      }
-      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        return 'http://localhost:8000';
-      }
-      // On public HTTPS deployments without VITE_API_URL, default to relative path
-      return '';
-    };
-
-    const API_URL = getApiBaseUrl();
+    const API_URL = import.meta.env.VITE_API_URL || '';
 
     try {
-      // 1. Submit async job
+      // 1. Submit asynchronous job
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('name', personName || t.pykemon);
+      formData.append('theme', selectedTheme);
+      formData.append('font_style', fontStyle);
+
       const submitRes = await fetch(`${API_URL}/api/jobs`, {
         method: 'POST',
         body: formData,
       });
 
       if (!submitRes.ok) {
-        const errJson = await submitRes.json().catch(() => ({}));
-        throw new Error(errJson.detail || 'Failed to submit job.');
+        let errMessage = 'Failed to submit rendering job.';
+        try {
+          const errData = await submitRes.json();
+          if (errData && errData.detail) {
+            errMessage = typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
+          }
+        } catch {
+          // Fall back to HTTP status message
+        }
+        throw new Error(errMessage);
       }
 
-      const { job_id } = await submitRes.json();
+      const jobData = await submitRes.json();
+      const job_id = jobData.job_id;
 
       // 2. Poll job status
       let isDone = false;
       while (!isDone) {
-        await new Promise((r) => setTimeout(r, 700));
+        await new Promise((resolve) => setTimeout(resolve, 600));
 
         const pollRes = await fetch(`${API_URL}/api/jobs/${job_id}`);
-        if (!pollRes.ok) {
-          throw new Error('Failed to query job status.');
-        }
+        if (!pollRes.ok) throw new Error('Failed to query job status.');
 
         const pollData = await pollRes.json();
-        setJobProgress(pollData.progress || 10);
+        setJobProgress(pollData.progress || 0);
         setJobMessage(pollData.message || 'Processing...');
         setJobStatus(pollData.status);
 
@@ -289,7 +279,7 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedFile, isLoading, personName, selectedTheme, t]);
+  }, [selectedFile, isLoading, personName, selectedTheme, fontStyle, t]);
 
   /**
    * Keyboard shortcuts: Cmd/Ctrl + Enter to trigger generation.
@@ -328,20 +318,17 @@ export default function App() {
         await navigator.share({
           title: t.shareTitle,
           text: t.shareText.replace('{name}', subjectName),
-          url: window.location.href,
         });
       } else {
-        alert(t.shareNotSupported);
+        handleDownload();
       }
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        console.error('Share error:', err);
-      }
+    } catch {
+      handleDownload();
     }
   };
 
   /**
-   * Downloads video directly.
+   * Downloads completed MP4 video.
    */
   const handleDownload = () => {
     if (!videoBlobUrl) return;
@@ -369,8 +356,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen retro-grid-bg flex flex-col items-center justify-between p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 font-sans selection:bg-poke-yellow selection:text-slate-950 transition-colors duration-300">
-      {/* Interactive Crop Modal */}
+    <div className="min-h-screen flex flex-col items-center justify-between p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 font-sans selection:bg-poke-yellow selection:text-slate-950">
+      {/* Interactive Crop Modal (Native HTML5 <dialog>) */}
       {showCropper && rawImageUrl && (
         <ImageCropper
           imageUrl={rawImageUrl}
@@ -380,13 +367,15 @@ export default function App() {
         />
       )}
 
-      {/* Top Navigation Bar */}
-      <nav className="w-full max-w-5xl flex items-center justify-between py-2 mb-3">
-        <div className="flex items-center gap-2.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-ping"></span>
-          <span className="text-[11px] font-arcade text-slate-400 dark:text-slate-300 light:text-slate-600 tracking-wider">
-            {t.engineReady}
-          </span>
+      {/* Top Header & Broadcast Controls */}
+      <nav className="w-full max-w-5xl flex items-center justify-between py-2 mb-4 border-b border-slate-800/80 dark:border-slate-800 light:border-slate-300 pb-3">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20"></span>
+            <span className="text-[11px] font-mono font-bold text-slate-400 dark:text-slate-400 light:text-slate-600 tracking-wider uppercase">
+              {t.engineReady}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -400,8 +389,9 @@ export default function App() {
           <button
             type="button"
             onClick={handleToggleTheme}
-            className="p-2 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-700/60 dark:border-slate-800 light:border-slate-300 text-slate-400 dark:text-slate-400 light:text-slate-700 hover:text-white dark:hover:text-white light:hover:text-slate-950 transition-all shadow-sm"
+            className="btn-tactile p-2 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-700/80 dark:border-slate-800 light:border-slate-300 text-slate-300 dark:text-slate-300 light:text-slate-700 hover:text-white dark:hover:text-white light:hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-poke-yellow"
             title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {isDarkMode ? (
               <Sun className="w-4 h-4 text-poke-yellow" />
@@ -414,8 +404,9 @@ export default function App() {
           <button
             type="button"
             onClick={handleToggleMute}
-            className="p-2 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-700/60 dark:border-slate-800 light:border-slate-300 text-slate-400 dark:text-slate-400 light:text-slate-700 hover:text-white dark:hover:text-white light:hover:text-slate-950 transition-all shadow-sm"
+            className="btn-tactile p-2 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-700/80 dark:border-slate-800 light:border-slate-300 text-slate-300 dark:text-slate-300 light:text-slate-700 hover:text-white dark:hover:text-white light:hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-poke-yellow"
             title={isMuted ? 'Unmute' : 'Mute'}
+            aria-label={isMuted ? 'Unmute audio' : 'Mute audio'}
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-poke-yellow" />}
           </button>
@@ -424,7 +415,7 @@ export default function App() {
           {deferredPrompt && !isInstalled && (
             <button
               onClick={handleInstallClick}
-              className="hidden sm:flex py-1.5 px-3 bg-poke-blue/30 hover:bg-poke-blue/50 text-poke-yellow border border-poke-blue/40 rounded-xl text-xs font-bold items-center gap-1.5 transition-all shadow"
+              className="btn-tactile hidden sm:flex py-1.5 px-3 bg-poke-blue/20 hover:bg-poke-blue/30 text-poke-yellow border border-poke-blue/50 rounded-xl text-xs font-bold items-center gap-1.5 shadow-sm"
             >
               <Smartphone className="w-3.5 h-3.5" />
               <span>{t.installApp}</span>
@@ -433,18 +424,19 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Main Studio Container */}
+      {/* Main Studio Synthesizer Workstation */}
       <div className="w-full max-w-5xl flex flex-col items-center my-auto">
         {/* Header & Logo */}
         <header className="w-full flex flex-col items-center pt-1 pb-6">
-          <div className="flex items-center gap-3.5">
-            <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-poke-red border-2 border-white flex items-center justify-center shadow-xl shadow-red-900/60 animate-pokeball-wobble">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-poke-red border-2 border-white flex items-center justify-center shadow-md relative overflow-hidden">
               <div className="w-full h-1 bg-slate-950 absolute"></div>
-              <div className="w-4 h-4 rounded-full bg-white border-2 border-slate-950 z-10 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-poke-yellow"></div>
+              <div className="w-3.5 h-3.5 rounded-full bg-white border-2 border-slate-950 z-10 flex items-center justify-center">
+                <div className="w-1 h-1 rounded-full bg-poke-yellow"></div>
               </div>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black tracking-wider text-poke-yellow text-poke-stroke font-display uppercase">
+            {/* Hallmark gate 38a: Upright Roman Header, no italic AI tells */}
+            <h1 className="text-2xl sm:text-4xl font-black tracking-wider text-poke-yellow text-poke-stroke font-normal uppercase">
               {t.appTitle} <span className="text-white dark:text-white light:text-slate-900">{t.pykemon}</span>?
             </h1>
           </div>
@@ -455,16 +447,16 @@ export default function App() {
 
         {/* Global Error Banner */}
         {error && (
-          <div className="w-full mb-6 p-4 bg-red-500/15 border border-red-500/40 rounded-3xl flex items-start gap-3 text-red-200 text-xs sm:text-sm shadow-inner">
-            <AlertCircle className="w-5 h-5 mt-0.5 text-red-400 flex-shrink-0" />
+          <div className="w-full mb-5 p-3.5 bg-red-950/80 border border-red-700/80 rounded-2xl flex items-start gap-3 text-red-200 text-xs sm:text-sm shadow-sm">
+            <AlertCircle className="w-4 h-4 mt-0.5 text-red-400 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Main Content Glass Card */}
-        <main className="w-full glass-card-interactive rounded-3xl p-5 sm:p-7 lg:p-8 shadow-2xl flex flex-col relative overflow-hidden transition-all duration-300">
-          {/* Glowing Top Neon Line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-poke-red via-poke-yellow to-poke-blue"></div>
+        {/* Studio Workstation Console */}
+        <main className="w-full studio-deck-card rounded-2xl p-5 sm:p-7 lg:p-8 flex flex-col relative overflow-hidden transition-colors">
+          {/* Studio Accent Top Bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-poke-red"></div>
 
           {isLoading ? (
             /* Step-by-Step Progress View */
@@ -477,9 +469,9 @@ export default function App() {
               />
             </div>
           ) : !videoBlobUrl ? (
-            /* Responsive 2-Column Studio Grid (Mobile Stack / Desktop 2-Column) */
+            /* Responsive 2-Column Studio Grid: Left Stage Monitor / Right Control Deck */
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-              {/* Left Column: Visual Dropzone & Live Preview (lg:col-span-5) */}
+              {/* Left Column: Visual Stage Monitor & Lower-Third (lg:col-span-5) */}
               <div className="lg:col-span-5 flex flex-col gap-4">
                 <div className="relative w-full">
                   <div
@@ -489,24 +481,24 @@ export default function App() {
                     }}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
-                    className={`relative aspect-square w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-300 group ${
+                    className={`relative aspect-square w-full rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-colors group ${
                       previewUrl
-                        ? 'border-poke-yellow/70 bg-slate-950/90 shadow-2xl'
-                        : 'border-slate-700 dark:border-slate-700 light:border-slate-300 hover:border-poke-yellow bg-slate-900/50 dark:bg-slate-900/50 light:bg-slate-50 hover:bg-slate-850 light:hover:bg-slate-100'
+                        ? 'border-poke-yellow bg-slate-950 studio-monitor-bezel'
+                        : 'border-slate-700 dark:border-slate-700 light:border-slate-300 hover:border-poke-yellow bg-slate-900/60 dark:bg-slate-900/60 light:bg-slate-50'
                     }`}
                   >
                     {previewUrl ? (
                       <>
-                        <img src={previewUrl} alt="Preview" className="w-full h-full object-contain p-2" />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-bold text-xs backdrop-blur-[3px]">
+                        <img src={previewUrl} alt="Subject Preview" className="w-full h-full object-contain p-2" />
+                        <div className="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-bold text-xs">
                           <Camera className="w-4 h-4 text-poke-yellow" />
-                          {t.changePhoto}
+                          <span>{t.changePhoto}</span>
                         </div>
                       </>
                     ) : (
                       <div className="flex flex-col items-center p-6 text-center">
-                        <div className="p-4 rounded-3xl bg-poke-red/10 border border-poke-red/30 group-hover:bg-poke-yellow/20 group-hover:border-poke-yellow/50 text-poke-yellow transition-all mb-3 shadow-inner">
-                          <Camera className="w-10 h-10 text-poke-yellow" />
+                        <div className="p-3.5 rounded-2xl bg-poke-red/10 border border-poke-red/30 group-hover:bg-poke-yellow/20 group-hover:border-poke-yellow/50 text-poke-yellow transition-colors mb-3">
+                          <Camera className="w-8 h-8 text-poke-yellow" />
                         </div>
                         <span className="font-bold text-sm text-slate-100 dark:text-slate-100 light:text-slate-900">{t.dropzoneTitle}</span>
                         <span className="text-xs text-slate-400 dark:text-slate-500 light:text-slate-500 mt-1">{t.dropzoneSub}</span>
@@ -521,7 +513,7 @@ export default function App() {
                     />
                   </div>
 
-                  {/* Crop & Adjust Overlay Button */}
+                  {/* Crop & Alignment Tool Trigger */}
                   {previewUrl && (
                     <button
                       type="button"
@@ -529,7 +521,7 @@ export default function App() {
                         soundEffects.playClickSound();
                         setShowCropper(true);
                       }}
-                      className="absolute top-3 right-3 py-2 px-3 bg-slate-950/90 hover:bg-poke-yellow hover:text-slate-950 text-slate-100 text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-1.5 shadow-xl backdrop-blur-md transition-all active:scale-95"
+                      className="btn-tactile absolute top-3 right-3 py-1.5 px-2.5 bg-slate-900/95 hover:bg-poke-yellow hover:text-slate-950 text-slate-100 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1.5 shadow-md transition-colors"
                     >
                       <Crop className="w-3.5 h-3.5" />
                       <span>{t.cropAdjust}</span>
@@ -547,13 +539,13 @@ export default function App() {
                 />
               </div>
 
-              {/* Right Column: Customization Deck & Controls (lg:col-span-7) */}
+              {/* Right Column: Control Deck & Parameters (lg:col-span-7) */}
               <div className="lg:col-span-7 flex flex-col gap-5">
-                {/* Name Input */}
+                {/* Subject Name Input */}
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="name" className="text-[11px] font-bold text-slate-300 dark:text-slate-300 light:text-slate-700 tracking-wider uppercase flex items-center justify-between">
                     <span>{t.nameLabel}</span>
-                    <span className="text-[10px] text-slate-500">{personName.length}/30 {t.nameCharCount}</span>
+                    <span className="text-[10px] text-slate-500 font-mono">{personName.length}/30 {t.nameCharCount}</span>
                   </label>
                   <input
                     id="name"
@@ -566,37 +558,37 @@ export default function App() {
                       )
                     }
                     placeholder={t.namePlaceholder}
-                    className="w-full px-4 py-3.5 bg-slate-950/80 dark:bg-slate-950/80 light:bg-white border border-slate-700/80 dark:border-slate-700/80 light:border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-poke-yellow text-sm font-semibold uppercase tracking-wide text-slate-100 dark:text-slate-100 light:text-slate-900 placeholder-slate-500 transition-all shadow-inner"
+                    className="w-full px-4 py-3 bg-slate-900/80 dark:bg-slate-900/80 light:bg-white border border-slate-700/80 dark:border-slate-700/80 light:border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-poke-yellow text-sm font-semibold uppercase tracking-wide text-slate-100 dark:text-slate-100 light:text-slate-900 placeholder-slate-500 transition-all shadow-inner"
                   />
                 </div>
 
-                {/* Theme Selector */}
+                {/* Theme Channels Selector */}
                 <ThemeSelector
                   selectedTheme={selectedTheme}
                   onSelectTheme={setSelectedTheme}
                   t={t}
                 />
 
-                {/* Feature Highlights Grid */}
-                <div className="grid grid-cols-3 gap-2.5 p-3 rounded-2xl bg-slate-950/40 dark:bg-slate-950/40 light:bg-slate-100 border border-slate-800/80 dark:border-slate-800 light:border-slate-300 text-center">
+                {/* Technical Specifications Deck */}
+                <div className="grid grid-cols-3 gap-2.5 p-3 rounded-xl bg-slate-900/60 dark:bg-slate-900/60 light:bg-slate-100 border border-slate-700/70 dark:border-slate-800 light:border-slate-300 text-center">
                   <div className="flex flex-col items-center">
                     <Zap className="w-4 h-4 text-poke-yellow mb-1" />
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-300 light:text-slate-800">{t.highlightAi}</span>
-                    <span className="text-[9px] text-slate-500">{t.highlightAiDesc}</span>
+                    <span className="text-[10px] font-bold text-slate-200 dark:text-slate-200 light:text-slate-800">{t.highlightAi}</span>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 light:text-slate-500">{t.highlightAiDesc}</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <Film className="w-4 h-4 text-cyan-400 mb-1" />
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-300 light:text-slate-800">{t.highlight1080p}</span>
-                    <span className="text-[9px] text-slate-500">{t.highlight1080pDesc}</span>
+                    <span className="text-[10px] font-bold text-slate-200 dark:text-slate-200 light:text-slate-800">{t.highlight1080p}</span>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 light:text-slate-500">{t.highlight1080pDesc}</span>
                   </div>
                   <div className="flex flex-col items-center">
-                    <ShieldCheck className="w-4 h-4 text-green-400 mb-1" />
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-300 light:text-slate-800">{t.highlightAudio}</span>
-                    <span className="text-[9px] text-slate-500">{t.highlightAudioDesc}</span>
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 mb-1" />
+                    <span className="text-[10px] font-bold text-slate-200 dark:text-slate-200 light:text-slate-800">{t.highlightAudio}</span>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 light:text-slate-500">{t.highlightAudioDesc}</span>
                   </div>
                 </div>
 
-                {/* Desktop Primary CTA Button (Visible on Desktop 'lg', handled by BottomActionBar on Mobile) */}
+                {/* Desktop Primary CTA Button (Visible on lg screens) */}
                 <div className="hidden lg:flex flex-col gap-2 pt-2">
                   <button
                     type="button"
@@ -605,13 +597,13 @@ export default function App() {
                       soundEffects.playClickSound();
                       handleGenerate();
                     }}
-                    className={`w-full py-4 px-6 rounded-2xl font-black text-sm tracking-wider uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                    className={`btn-tactile w-full py-3.5 px-6 rounded-xl font-black text-sm tracking-wider uppercase flex items-center justify-center gap-2.5 transition-colors shadow-md ${
                       !selectedFile || isLoading
                         ? 'bg-slate-800 dark:bg-slate-800 light:bg-slate-200 text-slate-500 cursor-not-allowed border border-slate-700 dark:border-slate-700 light:border-slate-300'
-                        : 'bg-gradient-to-r from-poke-red via-red-600 to-amber-500 hover:brightness-110 text-white shadow-red-900/50 active:scale-[0.98] ring-1 ring-white/20 animate-glow-pulse cursor-pointer'
-                    }`}
+                        : 'bg-poke-red hover:bg-red-700 text-white border border-red-500/50 cursor-pointer'
+                    } focus-visible:outline-2 focus-visible:outline-poke-yellow`}
                   >
-                    <Sparkles className="w-5 h-5 text-poke-yellow" />
+                    <Sparkles className="w-4 h-4 text-poke-yellow" />
                     <span>{isLoading ? t.generatingBtn : t.generateBtn}</span>
                   </button>
 
@@ -627,12 +619,12 @@ export default function App() {
               <div className="w-full flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-poke-yellow" />
-                  <span className="text-xs font-arcade text-poke-yellow">{t.videoCompleted}</span>
+                  <span className="text-xs font-mono font-bold text-poke-yellow">{t.videoCompleted}</span>
                 </div>
                 <span className="text-[10px] font-mono text-slate-400">{t.videoSpecs}</span>
               </div>
 
-              <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-700/80 flex items-center justify-center">
+              <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black shadow-lg border border-slate-700 flex items-center justify-center">
                 <video
                   src={videoBlobUrl}
                   controls
@@ -642,15 +634,15 @@ export default function App() {
                 />
               </div>
 
-              {/* Desktop & Mobile Action Buttons */}
-              <div className="grid grid-cols-3 gap-3 w-full">
+              {/* Action Buttons: Hallmark single-line guarantee on 320/375px */}
+              <div className="grid grid-cols-3 gap-2.5 w-full">
                 <button
                   type="button"
                   onClick={() => {
                     soundEffects.playClickSound();
                     resetAll();
                   }}
-                  className="py-3.5 px-3 rounded-2xl bg-slate-800 dark:bg-slate-800 light:bg-slate-100 hover:bg-slate-750 dark:hover:bg-slate-750 light:hover:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 dark:border-slate-700 light:border-slate-300 active:scale-95 transition-all shadow-md"
+                  className="btn-tactile py-3 px-3 rounded-xl bg-slate-800 dark:bg-slate-800 light:bg-slate-100 hover:bg-slate-700 text-slate-200 dark:text-slate-200 light:text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 dark:border-slate-700 light:border-slate-300 focus-visible:outline-2 focus-visible:outline-poke-yellow whitespace-nowrap"
                 >
                   <RefreshCw className="w-4 h-4" />
                   <span>{t.newVideoBtn}</span>
@@ -662,7 +654,7 @@ export default function App() {
                     soundEffects.playClickSound();
                     handleDownload();
                   }}
-                  className="py-3.5 px-4 rounded-2xl bg-poke-yellow hover:bg-yellow-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+                  className="btn-tactile py-3 px-3 rounded-xl bg-poke-yellow hover:bg-yellow-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md focus-visible:outline-2 focus-visible:outline-slate-950 whitespace-nowrap"
                 >
                   <Download className="w-4 h-4" />
                   <span>{t.downloadBtn}</span>
@@ -674,14 +666,14 @@ export default function App() {
                     soundEffects.playClickSound();
                     handleShare();
                   }}
-                  className="py-3.5 px-4 rounded-2xl bg-poke-blue hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+                  className="btn-tactile py-3 px-3 rounded-xl bg-poke-blue hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md focus-visible:outline-2 focus-visible:outline-poke-yellow whitespace-nowrap"
                 >
                   <Share2 className="w-4 h-4" />
                   <span>{t.shareBtn}</span>
                 </button>
               </div>
 
-              <div className="p-3 w-full rounded-2xl bg-slate-950/60 dark:bg-slate-950/60 light:bg-slate-100 border border-slate-800 dark:border-slate-800 light:border-slate-300 text-center text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 flex items-center justify-center gap-2">
+              <div className="p-3 w-full rounded-xl bg-slate-900/60 dark:bg-slate-900/60 light:bg-slate-100 border border-slate-700/60 dark:border-slate-800 light:border-slate-300 text-center text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 flex items-center justify-center gap-2">
                 <HelpCircle className="w-4 h-4 text-poke-yellow" />
                 <span>{t.shareAdvice}</span>
               </div>

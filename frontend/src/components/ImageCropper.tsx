@@ -11,7 +11,7 @@ interface ImageCropperProps {
 
 /**
  * Interactive Image Cropper & Alignment Tool.
- * Allows panning, zooming, and centering the subject within Pokémon alignment guides.
+ * Implemented with the native HTML5 <dialog> modal per Modern Web Guidance standards.
  */
 export const ImageCropper: React.FC<ImageCropperProps> = ({
   imageUrl,
@@ -19,12 +19,27 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
   onCancel,
   t,
 }) => {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zoom, setZoom] = useState<number>(1);
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [imageObj, setImageObj] = useState<HTMLImageElement | null>(null);
+
+  // Open native modal dialog on mount
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  }, []);
+
+  // Intercept native Escape key and close requests
+  const handleDialogCancel = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    onCancel();
+  };
 
   useEffect(() => {
     const img = new Image();
@@ -51,15 +66,13 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
     ctx.clearRect(0, 0, size, size);
 
     // Draw background
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = '#090D16';
     ctx.fillRect(0, 0, size, size);
 
     ctx.save();
-    // Center point
     ctx.translate(size / 2 + offset.x, size / 2 + offset.y);
     ctx.scale(zoom, zoom);
 
-    // Maintain aspect ratio
     const scale = Math.min(size / imageObj.width, size / imageObj.height);
     const w = imageObj.width * scale;
     const h = imageObj.height * scale;
@@ -67,8 +80,8 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
     ctx.drawImage(imageObj, -w / 2, -h / 2, w, h);
     ctx.restore();
 
-    // Draw alignment guides (crosshairs and rule-of-thirds grid)
-    ctx.strokeStyle = 'rgba(255, 203, 5, 0.4)';
+    // Alignment guides
+    ctx.strokeStyle = 'rgba(255, 203, 5, 0.45)';
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 6]);
 
@@ -83,7 +96,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
     // Center target oval
     ctx.beginPath();
     ctx.ellipse(size / 2, size / 2, size * 0.38, size * 0.42, 0, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'rgba(42, 117, 187, 0.6)';
+    ctx.strokeStyle = 'rgba(37, 99, 235, 0.7)';
     ctx.lineWidth = 2;
     ctx.setLineDash([]);
     ctx.stroke();
@@ -131,21 +144,15 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
   const handleApplyCrop = () => {
     if (!imageObj) return;
 
-    // Render high-res output on offscreen canvas
+    const outSize = 800;
     const outputCanvas = document.createElement('canvas');
-    const outSize = Math.max(imageObj.width, imageObj.height, 1080);
     outputCanvas.width = outSize;
     outputCanvas.height = outSize;
     const ctx = outputCanvas.getContext('2d');
     if (!ctx) return;
 
-    // Transparent background for seamless AI matting
-    ctx.clearRect(0, 0, outSize, outSize);
-
     ctx.save();
-    // Map offset from 600px preview scale to outSize
-    const scaleFactor = outSize / 600;
-    ctx.translate(outSize / 2 + offset.x * scaleFactor, outSize / 2 + offset.y * scaleFactor);
+    ctx.translate(outSize / 2 + (offset.x * (outSize / 600)), outSize / 2 + (offset.y * (outSize / 600)));
     ctx.scale(zoom, zoom);
 
     const baseScale = Math.min(outSize / imageObj.width, outSize / imageObj.height);
@@ -163,23 +170,32 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 dark:bg-slate-900 light:bg-white border border-slate-700 dark:border-slate-700 light:border-slate-200 rounded-3xl p-5 max-w-sm w-full shadow-2xl flex flex-col items-center">
+    <dialog
+      ref={dialogRef}
+      onCancel={handleDialogCancel}
+      aria-labelledby="crop-dialog-title"
+      className="p-0 bg-transparent border-0 max-w-sm w-full outline-none backdrop:bg-slate-950/80 m-auto"
+    >
+      <div className="studio-deck-card rounded-2xl p-5 w-full flex flex-col items-center">
         <div className="flex items-center justify-between w-full mb-3">
           <div className="flex items-center gap-2">
             <Move className="w-4 h-4 text-poke-yellow" />
-            <h3 className="font-bold text-sm text-white dark:text-white light:text-slate-900">{t.cropTitle}</h3>
+            <h2 id="crop-dialog-title" className="font-bold text-sm tracking-wide text-slate-100 dark:text-slate-100 light:text-slate-900">
+              {t.cropTitle}
+            </h2>
           </div>
           <button
+            type="button"
             onClick={onCancel}
-            className="p-1 text-slate-400 hover:text-white dark:hover:text-white light:hover:text-slate-950 rounded-lg transition-colors"
+            aria-label="Close dialog"
+            className="p-1 text-slate-400 hover:text-slate-100 dark:hover:text-slate-100 light:hover:text-slate-900 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-poke-yellow"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Canvas Display */}
-        <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-slate-700 dark:border-slate-700 light:border-slate-300 bg-slate-950 flex items-center justify-center cursor-grab active:cursor-grabbing shadow-inner">
+        <div className="relative aspect-square w-full rounded-xl overflow-hidden studio-monitor-bezel flex items-center justify-center cursor-grab active:cursor-grabbing">
           <canvas
             ref={canvasRef}
             className="w-full h-full object-contain"
@@ -202,8 +218,9 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             max="3"
             step="0.05"
             value={zoom}
+            aria-label="Image Zoom Level"
             onChange={(e) => setZoom(parseFloat(e.target.value))}
-            className="w-full h-2 bg-slate-800 dark:bg-slate-800 light:bg-slate-200 rounded-lg appearance-none cursor-pointer accent-poke-yellow"
+            className="w-full h-2 bg-slate-800 dark:bg-slate-800 light:bg-slate-200 rounded-lg appearance-none cursor-pointer accent-poke-yellow focus-visible:outline-2 focus-visible:outline-poke-yellow"
           />
           <ZoomIn className="w-4 h-4 text-slate-400" />
         </div>
@@ -216,7 +233,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
               setZoom(1);
               setOffset({ x: 0, y: 0 });
             }}
-            className="py-2.5 px-3 bg-slate-800 dark:bg-slate-800 light:bg-slate-100 hover:bg-slate-700 dark:hover:bg-slate-700 light:hover:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all"
+            className="btn-tactile py-2.5 px-3 bg-slate-800 dark:bg-slate-800 light:bg-slate-100 hover:bg-slate-700 text-slate-300 dark:text-slate-300 light:text-slate-700 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-700 dark:border-slate-700 light:border-slate-300 focus-visible:outline-2 focus-visible:outline-poke-yellow"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>{t.cropReset}</span>
@@ -225,13 +242,13 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
           <button
             type="button"
             onClick={handleApplyCrop}
-            className="py-2.5 px-3 bg-poke-yellow hover:bg-yellow-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95"
+            className="btn-tactile py-2.5 px-3 bg-poke-yellow hover:bg-yellow-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md focus-visible:outline-2 focus-visible:outline-slate-950"
           >
             <Check className="w-4 h-4" />
             <span>{t.cropApply}</span>
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };

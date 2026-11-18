@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, Sparkles } from 'lucide-react';
+import { Type, Radio } from 'lucide-react';
 import { soundEffects } from '../utils/soundEffects';
 import { Translations } from '../i18n/translations';
 
@@ -35,25 +35,19 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
         return {
           strokeClass: 'text-gold-stroke',
           textColor: 'text-yellow-400',
-          badgeBg: 'from-amber-950/80 via-yellow-900/60 to-red-950/80 dark:from-amber-950/80 dark:via-yellow-900/60 dark:to-red-950/80',
-          badgeBorder: 'border-yellow-500/50',
-          glow: 'shadow-[0_0_20px_rgba(234,179,8,0.3)]',
+          badgeBg: 'bg-[#2A1805] border-amber-600/70',
         };
       case 'neon':
         return {
           strokeClass: 'text-neon-stroke',
           textColor: 'text-cyan-300',
-          badgeBg: 'from-fuchsia-950/80 via-purple-900/60 to-cyan-950/80 dark:from-fuchsia-950/80 dark:via-purple-900/60 dark:to-cyan-950/80',
-          badgeBorder: 'border-cyan-400/50',
-          glow: 'shadow-[0_0_20px_rgba(6,182,212,0.4)]',
+          badgeBg: 'bg-[#180A26] border-fuchsia-600/70',
         };
       default: // classic
         return {
           strokeClass: 'text-poke-stroke-sm sm:text-poke-stroke',
           textColor: 'text-poke-yellow',
-          badgeBg: 'from-blue-950/90 via-indigo-900/70 to-red-950/90 dark:from-blue-950/90 dark:via-indigo-900/70 dark:to-red-950/90',
-          badgeBorder: 'border-poke-blue/60',
-          glow: 'shadow-[0_0_25px_rgba(42,117,187,0.4)]',
+          badgeBg: 'bg-[#0E2042] border-blue-600/70',
         };
     }
   };
@@ -61,64 +55,60 @@ export const LiveBadgePreview: React.FC<LiveBadgePreviewProps> = ({
   const currentThemeStyle = getThemeBadgeStyle();
 
   return (
-    <div className="flex flex-col gap-2.5 w-full">
+    <div className="flex flex-col gap-2 w-full">
       <div className="flex items-center justify-between">
         <label className="text-[11px] font-bold text-slate-300 dark:text-slate-300 light:text-slate-700 tracking-wider uppercase flex items-center gap-1.5">
           <Type className="w-3.5 h-3.5 text-poke-yellow" />
           <span>{t.livePreviewTitle}</span>
         </label>
-        <span className="text-[10px] text-slate-500 font-mono">{t.livePreviewBadge}</span>
+        <div className="flex items-center gap-1 text-[10px] text-slate-500 font-mono">
+          <Radio className="w-3 h-3 text-red-500 animate-pulse" />
+          <span>LIVE STAGE</span>
+        </div>
       </div>
 
-      {/* Live Badge Preview Card */}
+      {/* Live Badge Preview Card (Tactile Broadcast Lower-Third) */}
       <div
-        className={`relative w-full py-4 px-4 rounded-2xl bg-gradient-to-r ${currentThemeStyle.badgeBg} border ${currentThemeStyle.badgeBorder} ${currentThemeStyle.glow} flex flex-col items-center justify-center overflow-hidden transition-all duration-300`}
+        className={`relative w-full py-3.5 px-4 rounded-xl border ${currentThemeStyle.badgeBg} flex flex-col items-center justify-center overflow-hidden transition-colors shadow-inner`}
       >
-        <div className="absolute top-0 right-0 p-2 opacity-20">
-          <Sparkles className="w-12 h-12 text-white" />
-        </div>
-
-        <span className="text-[10px] tracking-widest text-slate-300 uppercase font-black mb-0.5 opacity-90">
+        <span className="text-[10px] tracking-widest text-slate-300 uppercase font-bold mb-0.5 opacity-80">
           {t.livePreviewAnnounce}
         </span>
 
         <div
-          className={`text-lg sm:text-2xl tracking-wide font-black ${currentThemeStyle.textColor} ${currentThemeStyle.strokeClass} ${
+          className={`text-base sm:text-xl tracking-wide font-black ${currentThemeStyle.textColor} ${currentThemeStyle.strokeClass} ${
             fontStyle === 'arcade'
-              ? 'font-arcade text-xs sm:text-base leading-relaxed tracking-tighter'
+              ? 'font-arcade text-xs sm:text-sm leading-relaxed tracking-tighter'
               : fontStyle === 'hollow'
               ? 'font-hollow tracking-wider'
               : fontStyle === 'solid'
               ? 'font-pokemon tracking-wider'
               : 'font-sans'
-          } text-center break-all transition-all duration-200`}
+          } text-center break-all transition-all duration-150`}
         >
           {t.revealPrefix} {displayName}!
         </div>
       </div>
 
-      {/* Font Style Switcher */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full">
-        {fontOptions.map((style) => {
-          const isSelected = fontStyle === style.id;
-          return (
-            <button
-              key={style.id}
-              type="button"
-              onClick={() => {
-                soundEffects.playClickSound();
-                onSelectFontStyle(style.id);
-              }}
-              className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
-                isSelected
-                  ? 'bg-poke-yellow text-slate-950 border-poke-yellow shadow-md scale-[1.02]'
-                  : 'bg-slate-900/80 dark:bg-slate-900/80 light:bg-slate-100 border-slate-800 dark:border-slate-800 light:border-slate-300 text-slate-400 dark:text-slate-400 light:text-slate-600 hover:text-white dark:hover:text-white light:hover:text-slate-950'
-              }`}
-            >
-              {style.name}
-            </button>
-          );
-        })}
+      {/* Font Style Switcher: Tactile Segmented Controls */}
+      <div className="grid grid-cols-4 gap-1 p-1 bg-slate-900/80 dark:bg-slate-900/80 light:bg-slate-100 rounded-lg border border-slate-700/60 dark:border-slate-800 light:border-slate-300">
+        {fontOptions.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => {
+              soundEffects.playClickSound();
+              onSelectFontStyle(opt.id);
+            }}
+            className={`py-1.5 px-2 rounded text-[10px] font-bold transition-all text-center ${
+              fontStyle === opt.id
+                ? 'bg-poke-yellow text-slate-950 shadow-sm font-black'
+                : 'text-slate-400 dark:text-slate-400 light:text-slate-600 hover:text-slate-100'
+            } focus-visible:outline-2 focus-visible:outline-poke-yellow`}
+          >
+            {opt.name}
+          </button>
+        ))}
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ This document outlines completed milestones and future technical development goa
 - Expanded typography styling with custom font families.
 - Locale-aware uppercase text input conversion.
 - Cross-platform desktop application packaging with Tauri 2.
+- Interactive showcase and promotional site deployed via GitHub Pages.
 
 ## Future Milestones
 

@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://atacanymc.github.io/who-is-that-pykemon/"><img src="https://img.shields.io/badge/GitHub%20Pages-Live%20Showcase-brightgreen?style=flat&logo=github" alt="GitHub Pages Showcase" /></a>
   <a href="https://github.com/AtaCanYmc/who-is-that-pykemon/actions/workflows/ci.yml"><img src="https://github.com/AtaCanYmc/who-is-that-pykemon/actions/workflows/ci.yml/badge.svg" alt="CI Pipeline Status" /></a>
   <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React" />
@@ -250,7 +251,11 @@ who-is-that-pykemon/
 │   ├── icons/                # Multi-platform app icons (macOS, Windows, Linux)
 │   ├── Cargo.toml            # Rust dependencies and package configuration
 │   └── tauri.conf.json       # Tauri window and build configuration
-├── docs/
+├── docs/                     # GitHub Pages promotional site and documentation
+│   ├── index.html            # Interactive showcase landing page
+│   ├── style.css             # Modern semantic stylesheet with dark mode
+│   ├── app.js                # Live badge preview and Web Audio retro chiptune
+│   ├── assets/               # Fonts, favicons, and manifest icons
 │   └── images/               # Documentation banner and diagrams
 ├── scripts/                  # Governance, grounding, and anti-slop linters
 ├── .github/

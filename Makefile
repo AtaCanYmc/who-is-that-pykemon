@@ -56,6 +56,11 @@ dev-frontend: ## Run Vite frontend dev server on http://localhost:5173
 	@echo "Starting Vite frontend dev server on http://localhost:5173..."
 	@npm run dev --prefix frontend
 
+.PHONY: dev-docs
+dev-docs: ## Serve GitHub Pages documentation site locally on port 4000
+	@echo "Serving GitHub Pages documentation site on http://localhost:4000..."
+	@python3 -m http.server 4000 --directory docs
+
 # ==============================================================================
 # Testing & Validation
 # ==============================================================================
